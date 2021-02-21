@@ -1,21 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 function Submission(props) {
-  const [title, setTitle] = useState(props.title);
-  const [score, setScore] = useState(props.score);
-  const [text, setText] = useState(props.text);
+  // const [title, setTitle] = useState(props.title);
+  // const [score, setScore] = useState(props.score);
+  // const [text, setText] = useState(props.text);
 
-  useEffect(() => {
-    const submission = props.submission;
-    setTitle(submission.title);
-    setScore(submission.score);
-    setText(submission.selftext);
-    console.log(submission);
-  });
+  // useEffect(() => {
+  //   const submission = props.submission;
+  //   setTitle(submission.title);
+  //   setScore(submission.score);
+  //   setText(submission.selftext);
+  // });
+
+  const submission = props.submission;
+  const { title, score } = submission;
+  const text = submission.selftext;
 
   return (
     <div>
-      <h4>
+      <h4 className='text-center'>
         {title} ({score})
       </h4>
       <p>{text}</p>
