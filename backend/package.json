@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "devstart": "DEBUG=backend:* npm run start"
+    "devstart": "DEBUG=backend:* nodemon ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
