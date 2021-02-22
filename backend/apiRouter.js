@@ -6,6 +6,13 @@ const reddit = require('./reddit');
 router.get('/test', (req, res) => {
   res.json({ data: 'Hello world!' });
 });
+router.get('/valid/subreddit/:subredditName', (req, res) => {
+  reddit
+    .getSubreddit(req.params.subredditName)
+    .fetch()
+    .then(() => res.sendStatus(200))
+    .catch(() => res.sendStatus(404));
+});
 
 router.get(
   '/subreddit/:subredditName/:sortType/:sortTime/:numSubmissions',

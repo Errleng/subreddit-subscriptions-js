@@ -18,9 +18,9 @@ function Submission(props) {
 
   return (
     <div>
-      <h4 className='text-center'>
+      <h5 className='text-center'>
         {title} ({score})
-      </h4>
+      </h5>
       <p>{text}</p>
     </div>
   );

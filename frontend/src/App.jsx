@@ -8,7 +8,9 @@ function App() {
       <div className='row justify-content-center mt-5'>
         <h1>MERN</h1>
       </div>
-      <InputManager />
+      <div className='mt-5 mb-5'>
+        <InputManager />
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import SubredditSubmissions from './SubredditSubmissions';
+import SubredditDisplay from './SubredditDisplay';
 
 function InputManager(props) {
   const [subredditName, setSubredditName] = useState('');
@@ -11,29 +11,32 @@ function InputManager(props) {
     setSubredditName(event.target.value);
   }
 
+  function invalidSubreddit() {}
+
   function addSubreddit() {
     if (!subNames.includes(subredditName)) {
-      setSubNames(subNames.concat(subredditName));
+      fetch(`/api/valid/subreddit/${subredditName}`).then((res) => {
+        if (res.ok) {
+          setSubNames(subNames.concat(subredditName));
+        } else {
+          invalidSubreddit();
+        }
+      });
     }
   }
 
-  const subredditList = subNames.map((subredditName) => {
-    return (
-      <SubredditSubmissions
-        key={subredditName}
-        name={subredditName}
-        sortType='top'
-        sortTime='year'
-        amount='10'
-      />
+  function removeSubreddit(removedSubName) {
+    const newSubNames = subNames.filter(
+      (subName) => subName !== removedSubName
     );
-  });
+    setSubNames(newSubNames);
+  }
 
   return (
     <div>
-      <div className='row justify-content-center mt-5'>
+      <div className='row justify-content-center'>
         <div className='col-xs-2'>
-          <div className='input-group mb-5 mt-5'>
+          <div className='input-group'>
             <input
               id='inputSubreddit'
               className='form-control'
@@ -54,7 +57,10 @@ function InputManager(props) {
           </div>
         </div>
       </div>
-      {subredditList}
+      <SubredditDisplay
+        subredditNames={subNames}
+        removeSubreddit={removeSubreddit}
+      />
     </div>
   );
 }
