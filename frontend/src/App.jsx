@@ -1,8 +1,8 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import InputManager from './InputManager';
 import './App.css';
+import SubredditDisplay from './SubredditDisplay';
 
 function App() {
   return (
@@ -11,7 +11,7 @@ function App() {
         <h1>MERN</h1>
       </div>
       <div className='mt-5 mb-5'>
-        <InputManager />
+        <SubredditDisplay />
       </div>
     </div>
   );
