@@ -14,6 +14,44 @@ router.get('/valid/subreddit/:subredditName', (req, res) => {
     .catch(() => res.sendStatus(404));
 });
 
+function getSubmissionPreviewImageUrls(submission) {
+  const imageUrls = [];
+  if (Object.prototype.hasOwnProperty.call(submission, 'preview')) {
+    // mostly arbitrary, since there's no official documentation on preview image resolutions
+    const previewImages = submission.preview.images[0].resolutions;
+    const MAX_PREVIEW_RESOLUTION_INDEX = 3;
+    imageUrls.push(
+      previewImages[
+        Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
+      ].url
+    );
+  } else if (
+    Object.prototype.hasOwnProperty.call(submission, 'is_gallery') &&
+    submission.is_gallery
+  ) {
+    if (Object.prototype.hasOwnProperty.call(submission, 'gallery_data')) {
+      const galleryImages = submission.gallery_data.items;
+      galleryImages.forEach((image) => {
+        const metadata = submission.media_metadata[image.media_id];
+        const previewImages = metadata.p;
+
+        const MAX_PREVIEW_RESOLUTION_INDEX = 3;
+        const imagePreview =
+          previewImages[
+            Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
+          ].u;
+
+        imageUrls.push(imagePreview);
+      });
+    } else {
+      throw new Error(
+        `Submission has is_gallery (${submission.is_gallery}) but does not have gallery_data (${submission.gallery_data})`
+      );
+    }
+  }
+  return imageUrls;
+}
+
 router.get(
   '/subreddit/:subredditName/:sortType/:sortTime/:numSubmissions',
   (req, res) => {
@@ -42,12 +80,20 @@ router.get(
         throw new Error(`Invalid sort type: ${sortType}`);
     }
 
-    if (!['day', 'month', 'year', 'all'].includes(sortTime)) {
+    if (!['hour', 'day', 'week', 'month', 'year', 'all'].includes(sortTime)) {
       throw new Error(`Invalid sort time: ${sortTime}`);
     }
 
     sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
-      res.send(data);
+      const modifiedData = data.map((submissionData) => {
+        const modifiedSubmission = submissionData;
+        modifiedSubmission.image_urls = getSubmissionPreviewImageUrls(
+          modifiedSubmission
+        );
+        return modifiedSubmission;
+      });
+      // console.log(modifiedData);
+      res.send(modifiedData);
     });
   }
 );

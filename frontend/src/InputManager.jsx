@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import SubredditDisplay from './SubredditDisplay';
 
 function InputManager(props) {
   const [subredditName, setSubredditName] = useState('');
   const [subNames, setSubNames] = useState([]);
 
-  useEffect(() => {});
-
   function onSubredditNameInput(event) {
     setSubredditName(event.target.value);
   }
 
-  function invalidSubreddit() {}
+  function invalidSubreddit() {
+    alert(`Could not get data for subreddit r/${subredditName}`);
+  }
 
   function addSubreddit() {
     if (!subNames.includes(subredditName)) {
@@ -22,6 +22,8 @@ function InputManager(props) {
           invalidSubreddit();
         }
       });
+    } else {
+      alert(`Subreddit ${subredditName} is already added`);
     }
   }
 
@@ -42,7 +44,7 @@ function InputManager(props) {
               className='form-control'
               type='search'
               placeholder='Enter subreddit name'
-              vale={subredditName}
+              value={subredditName}
               onChange={onSubredditNameInput}
             />
             <div className='input-group-append'>

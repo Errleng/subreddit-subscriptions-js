@@ -8,5 +8,6 @@ const reddit = new snoowrap({
   clientSecret: secrets.clientSecret,
   refreshToken: secrets.refreshToken,
 });
+reddit.config({ requestDelay: 1000 });
 
 module.exports = reddit;

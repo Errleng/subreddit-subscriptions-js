@@ -25,7 +25,11 @@
 }
 
 .App-link {
-  color: #61dafb;
+  color: #547ef3;
+}
+
+.App-link:visited {
+  color: #b661fb;
 }
 
 @keyframes App-logo-spin {
@@ -35,4 +39,21 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+hr.submission-divider {
+  border: none;
+  border-top: 3px double #333;
+  color: #333;
+  overflow: visible;
+  text-align: center;
+  height: 5px;
+}
+
+hr.submission-divider:after {
+  background: #fff;
+  content: '§';
+  padding: 0 4px;
+  position: relative;
+  top: -13px;
 }

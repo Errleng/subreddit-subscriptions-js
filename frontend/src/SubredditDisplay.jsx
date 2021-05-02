@@ -22,13 +22,13 @@ function SubredditDisplay(props) {
 
     const subredditList = props.subredditNames.map((subName) => {
       return (
-        <div>
-          <h2 className='text-center'>{subName}</h2>
+        <div align='center'>
+          <h1>r/{subName}</h1>
           <SubredditSubmissions
             key={subName}
             name={subName}
             sortType='top'
-            sortTime='year'
+            sortTime='day'
             amount='10'
           />
         </div>
