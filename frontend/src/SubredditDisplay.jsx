@@ -1,10 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Subreddit from './Subreddit';
 import InputManager from './InputManager';
 
 function SubredditDisplay(props) {
   const [subredditNames, setSubredditNames] = useState([]);
   const [subredditList, setSubredditList] = useState([]);
+
+  useEffect(() => {
+    const storedSubredditNameJson = localStorage.getItem(
+      'subscribedSubreddits'
+    );
+    if (storedSubredditNameJson !== null) {
+      const storedSubredditNames = JSON.parse(storedSubredditNameJson);
+      if (storedSubredditNames.length > 0) {
+        setSubredditNames(storedSubredditNames);
+        setSubredditList(
+          storedSubredditNames.map((name) => {
+            return <Subreddit key={name} name={name} />;
+          })
+        );
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      'subscribedSubreddits',
+      JSON.stringify(subredditNames)
+    );
+  }, [subredditNames]);
 
   function invalidSubreddit(subredditName) {
     alert(`Could not get data for subreddit r/${subredditName}`);
@@ -35,7 +59,7 @@ function SubredditDisplay(props) {
     );
     setSubredditNames(newSubredditNames);
     const newSubredditList = subredditList.filter(
-      (subreddit) => subreddit.props.name !== removedSubName
+      (sub) => sub.props.name !== removedSubName
     );
     setSubredditList(newSubredditList);
   }
