@@ -5,21 +5,31 @@ import InputManager from './InputManager';
 function SubredditDisplay(props) {
   const [subredditNames, setSubredditNames] = useState([]);
   const [subredditList, setSubredditList] = useState([]);
+  const [sortTimes, setSortTimes] = useState({});
 
   useEffect(() => {
-    const storedSubredditNameJson = localStorage.getItem(
-      'subscribedSubreddits'
-    );
-    if (storedSubredditNameJson !== null) {
-      const storedSubredditNames = JSON.parse(storedSubredditNameJson);
-      if (storedSubredditNames.length > 0) {
-        setSubredditNames(storedSubredditNames);
-        setSubredditList(
-          storedSubredditNames.map((name) => {
-            return <Subreddit key={name} name={name} />;
-          })
-        );
-      }
+    const sortTimesJson = localStorage.getItem('subredditSortTimes');
+    const sortTimesData = JSON.parse(sortTimesJson);
+    if (sortTimesData !== null) {
+      setSortTimes(sortTimesData);
+    }
+
+    const subredditNamesJson = localStorage.getItem('subscribedSubreddits');
+    const storedSubredditNames = JSON.parse(subredditNamesJson);
+    if (storedSubredditNames !== null) {
+      setSubredditNames(storedSubredditNames);
+      setSubredditList(
+        storedSubredditNames.map((name) => {
+          return (
+            <Subreddit
+              key={name}
+              name={name}
+              sortTime={sortTimesData[name]}
+              onChangeSortTime={onChangeSortTime.bind(this)}
+            />
+          );
+        })
+      );
     }
   }, []);
 
@@ -30,6 +40,10 @@ function SubredditDisplay(props) {
     );
   }, [subredditNames]);
 
+  useEffect(() => {
+    localStorage.setItem('subredditSortTimes', JSON.stringify(sortTimes));
+  }, [sortTimes]);
+
   function invalidSubreddit(subredditName) {
     alert(`Could not get data for subreddit r/${subredditName}`);
   }
@@ -39,9 +53,19 @@ function SubredditDisplay(props) {
       fetch(`/api/valid/subreddit/${subredditName}`).then((res) => {
         if (res.ok) {
           setSubredditNames(subredditNames.concat(subredditName));
+
+          const newSortTimes = { ...sortTimes };
+          newSortTimes[subredditName] = 'day';
+          setSortTimes(newSortTimes);
+
           setSubredditList(
             subredditList.concat(
-              <Subreddit key={subredditName} name={subredditName} />
+              <Subreddit
+                key={subredditName}
+                name={subredditName}
+                sortTime={sortTimes[subredditName]}
+                onChangeSortTime={onChangeSortTime.bind(this)}
+              />
             )
           );
         } else {
@@ -58,10 +82,22 @@ function SubredditDisplay(props) {
       (subName) => subName !== removedSubName
     );
     setSubredditNames(newSubredditNames);
+
     const newSubredditList = subredditList.filter(
       (sub) => sub.props.name !== removedSubName
     );
     setSubredditList(newSubredditList);
+
+    const newSortTimes = { ...sortTimes };
+    delete newSortTimes[removedSubName];
+    setSortTimes(newSortTimes);
+  }
+
+  function onChangeSortTime(subName, event) {
+    setSortTimes((sortTimes) => ({
+      ...sortTimes,
+      [subName]: event.target.value,
+    }));
   }
 
   if (subredditNames.length === 0) {

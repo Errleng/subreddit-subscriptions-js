@@ -5,11 +5,7 @@ import TimePeriodSelect from './TimePeriodSelect';
 function SubredditSubmissions(props) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [submissions, setSubmissions] = useState(null);
-  const [sortTimePeriod, setSortTimePeriod] = useState(props.sortTime);
-
-  function onChangeTimePeriod(event) {
-    setSortTimePeriod(event.target.value);
-  }
+  const [sortTime, setSortTime] = useState(props.sortTime || 'day');
 
   const subredditRequest =
     '/api/subreddit/' +
@@ -17,7 +13,7 @@ function SubredditSubmissions(props) {
     '/' +
     props.sortType +
     '/' +
-    sortTimePeriod +
+    sortTime +
     '/' +
     props.amount;
 
@@ -29,7 +25,12 @@ function SubredditSubmissions(props) {
         setSubmissions(json);
         setIsLoaded(true);
       });
-  }, [sortTimePeriod]);
+  }, [sortTime]);
+
+  function onChangeSortTime(event) {
+    setSortTime(event.target.value);
+    return props.onChangeSortTime(props.name, event);
+  }
 
   if (isLoaded) {
     const submissionList = submissions.map((submission) => {
@@ -38,8 +39,8 @@ function SubredditSubmissions(props) {
     return (
       <div>
         <TimePeriodSelect
-          timePeriod={sortTimePeriod}
-          postHandleChange={onChangeTimePeriod.bind(this)}
+          timePeriod={sortTime}
+          postHandleChange={onChangeSortTime.bind(this)}
         />
         {submissionList}
       </div>
