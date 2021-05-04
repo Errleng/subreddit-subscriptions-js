@@ -18,18 +18,6 @@ function SubredditDisplay(props) {
     const storedSubredditNames = JSON.parse(subredditNamesJson);
     if (storedSubredditNames !== null) {
       setSubredditNames(storedSubredditNames);
-      setSubredditList(
-        storedSubredditNames.map((name) => {
-          return (
-            <Subreddit
-              key={name}
-              name={name}
-              sortTime={sortTimesData[name]}
-              onChangeSortTime={onChangeSortTime.bind(this)}
-            />
-          );
-        })
-      );
     }
   }, []);
 
@@ -44,6 +32,21 @@ function SubredditDisplay(props) {
     localStorage.setItem('subredditSortTimes', JSON.stringify(sortTimes));
   }, [sortTimes]);
 
+  useEffect(() => {
+    setSubredditList(
+      subredditNames.map((name) => {
+        return (
+          <Subreddit
+            key={name}
+            name={name}
+            sortTime={sortTimes[name]}
+            onChangeSortTime={onChangeSortTime.bind(this)}
+          />
+        );
+      })
+    );
+  }, [subredditNames, sortTimes]);
+
   function invalidSubreddit(subredditName) {
     alert(`Could not get data for subreddit r/${subredditName}`);
   }
@@ -57,17 +60,6 @@ function SubredditDisplay(props) {
           const newSortTimes = { ...sortTimes };
           newSortTimes[subredditName] = 'day';
           setSortTimes(newSortTimes);
-
-          setSubredditList(
-            subredditList.concat(
-              <Subreddit
-                key={subredditName}
-                name={subredditName}
-                sortTime={sortTimes[subredditName]}
-                onChangeSortTime={onChangeSortTime.bind(this)}
-              />
-            )
-          );
         } else {
           invalidSubreddit(subredditName);
         }
