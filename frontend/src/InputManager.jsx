@@ -10,27 +10,29 @@ function InputManager(props) {
   return (
     <div className='row justify-content-center'>
       <div className='col-xs-2'>
-        <div className='input-group'>
-          <input
-            id='inputSubreddit'
-            className='form-control'
-            type='search'
-            placeholder='Enter subreddit name'
-            value={subredditName}
-            onChange={onSubredditNameInput}
-          />
-          <div className='input-group-append'>
-            <button
-              type='button'
-              className='btn btn-primary'
-              onClick={() => {
-                props.addSubreddit(subredditName);
-              }}
-            >
-              Add
-            </button>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            props.addSubreddit(subredditName);
+          }}
+        >
+          <div className='form-group'>
+            <div class='input-group'>
+              <input
+                className='form-control'
+                type='search'
+                placeholder='Enter subreddit name'
+                value={subredditName}
+                onChange={onSubredditNameInput}
+              />
+              <div class='input-group-append'>
+                <button type='submit' className='btn btn-primary'>
+                  Add
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

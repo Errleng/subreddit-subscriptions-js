@@ -69,26 +69,26 @@ function SubredditDisplay(props) {
     }
   }
 
-  function removeSubreddit(removedSubName) {
+  function removeSubreddit(removedSubredditName) {
     const newSubredditNames = subredditNames.filter(
-      (subName) => subName !== removedSubName
+      (subredditName) => subredditName !== removedSubredditName
     );
     setSubredditNames(newSubredditNames);
 
     const newSubredditList = subredditList.filter(
-      (sub) => sub.props.name !== removedSubName
+      (sub) => sub.props.name !== removedSubredditName
     );
     setSubredditList(newSubredditList);
 
     const newSortTimes = { ...sortTimes };
-    delete newSortTimes[removedSubName];
+    delete newSortTimes[removedSubredditName];
     setSortTimes(newSortTimes);
   }
 
-  function onChangeSortTime(subName, event) {
+  function onChangeSortTime(subredditName, event) {
     setSortTimes((sortTimes) => ({
       ...sortTimes,
-      [subName]: event.target.value,
+      [subredditName]: event.target.value,
     }));
   }
 
