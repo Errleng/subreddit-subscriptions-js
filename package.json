@@ -16,7 +16,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "cd backend && npm run devstart",
-    "client": "cd frontend && npm start",
+    "client": "cd react-frontend && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "repository": {
