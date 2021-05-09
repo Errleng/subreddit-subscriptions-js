@@ -16,8 +16,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "cd backend && npm run devstart",
-    "client": "cd react-frontend && npm start",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "react-client": "cd react-frontend && npm start",
+    "angular-client": "cd angular-frontend && npm start",
+    "react-dev": "concurrently \"npm run server\" \"npm run react-client\"",
+    "angular-dev": "concurrently \"npm run server\" \"npm run angular-client\""
   },
   "repository": {
     "type": "git",
