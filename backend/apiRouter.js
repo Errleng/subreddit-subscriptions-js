@@ -10,7 +10,7 @@ router.get('/valid/subreddit/:subredditName', (req, res) => {
   reddit
     .getSubreddit(req.params.subredditName)
     .fetch()
-    .then(() => res.sendStatus(200))
+    .then(() => res.status(200).send({}))
     .catch(() => res.sendStatus(404));
 });
 
