@@ -16,14 +16,16 @@ router.get('/valid/subreddit/:subredditName', (req, res) => {
 
 function getSubmissionPreviewImageUrls(submission) {
   const imageUrls = [];
-  if (Object.prototype.hasOwnProperty.call(submission, 'preview')) {
+  // sometimes there can be a preview property but preview.enabled is false
+  if (Object.prototype.hasOwnProperty.call(submission, 'preview') &&
+    submission.preview.enabled) {
     // mostly arbitrary, since there's no official documentation on preview image resolutions
     const previewImages = submission.preview.images[0].resolutions;
     const MAX_PREVIEW_RESOLUTION_INDEX = 3;
     imageUrls.push(
       previewImages[
         Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
-      ].url
+      ].url,
     );
   } else if (
     Object.prototype.hasOwnProperty.call(submission, 'is_gallery') &&
@@ -36,10 +38,9 @@ function getSubmissionPreviewImageUrls(submission) {
         const previewImages = metadata.p;
 
         const MAX_PREVIEW_RESOLUTION_INDEX = 3;
-        const imagePreview =
-          previewImages[
-            Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
-          ].u;
+        const imagePreview = previewImages[
+          Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
+        ].u;
 
         imageUrls.push(imagePreview);
       });

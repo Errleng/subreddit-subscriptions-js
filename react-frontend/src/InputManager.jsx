@@ -17,7 +17,7 @@ function InputManager(props) {
           }}
         >
           <div className='form-group'>
-            <div class='input-group'>
+            <div className='input-group'>
               <input
                 className='form-control'
                 type='search'
@@ -25,7 +25,7 @@ function InputManager(props) {
                 value={subredditName}
                 onChange={onSubredditNameInput}
               />
-              <div class='input-group-append'>
+              <div className='input-group-append'>
                 <button type='submit' className='btn btn-primary'>
                   Add
                 </button>
