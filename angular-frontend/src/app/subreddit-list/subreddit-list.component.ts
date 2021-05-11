@@ -8,7 +8,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './subreddit-list.component.html',
   styleUrls: ['./subreddit-list.component.css']
 })
-export class SubredditListComponent implements OnInit, OnDestroy {
+export class SubredditListComponent implements OnInit {
   faTrash = faTrash;
   searchSubName: string = '';
   subredditNames: string[] = [];
@@ -17,16 +17,16 @@ export class SubredditListComponent implements OnInit, OnDestroy {
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    this.subredditNames = ['personalfinance', 'food', 'sushi'];
+    this.subredditNames = ['personalfinance', 'food', 'sushi', 'ramen'];
   }
 
-  onSubmit() {
-    this.sub = this.http.get(`/api/valid/subreddit/${this.searchSubName}`, {observe: 'response'}).subscribe(
+  addSub(subName: string) {
+    this.http.get(`/api/valid/subreddit/${subName}`, {observe: 'response'}).subscribe(
       resp => {
         if (resp.ok) {
-          this.subredditNames.push(this.searchSubName);
+          this.subredditNames.push(subName);
         } else {
-          alert(`Could not find r/${this.searchSubName}`)
+          alert(`Could not find r/${subName}`)
         }
       }
     );
@@ -34,9 +34,5 @@ export class SubredditListComponent implements OnInit, OnDestroy {
 
   removeSub(subIndex: number): void {
     this.subredditNames.splice(subIndex, 1);
-  }
-
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
   }
 }
