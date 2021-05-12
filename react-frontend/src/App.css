@@ -69,3 +69,11 @@ hr.subreddit-divider {
   overflow: visible;
   text-align: center;
 }
+
+input.hide {
+  display: none;
+}
+
+label.no-margins {
+  margin: 0;
+}

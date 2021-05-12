@@ -9,6 +9,8 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./subreddit-list.component.css']
 })
 export class SubredditListComponent implements OnInit {
+  savedSubNamesKey: string = 'subredditNames';
+
   faTrash = faTrash;
   searchSubName: string = '';
   subredditNames: string[] = [];
@@ -17,7 +19,12 @@ export class SubredditListComponent implements OnInit {
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    this.subredditNames = ['personalfinance', 'food', 'sushi', 'ramen'];
+    const savedSubNames = localStorage.getItem(this.savedSubNamesKey);
+    if (savedSubNames === null) {
+      this.subredditNames = ['personalfinance', 'food', 'sushi', 'ramen'];
+    } else {
+      this.subredditNames = JSON.parse(savedSubNames);
+    }
   }
 
   addSub(subName: string) {
@@ -25,6 +32,7 @@ export class SubredditListComponent implements OnInit {
       resp => {
         if (resp.ok) {
           this.subredditNames.push(subName);
+          localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
         } else {
           alert(`Could not find r/${subName}`)
         }
@@ -34,5 +42,6 @@ export class SubredditListComponent implements OnInit {
 
   removeSub(subIndex: number): void {
     this.subredditNames.splice(subIndex, 1);
+    localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
   }
 }

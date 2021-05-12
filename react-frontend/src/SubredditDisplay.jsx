@@ -92,10 +92,52 @@ function SubredditDisplay(props) {
     }));
   }
 
+  function download(content, fileName, contentType) {
+    var a = document.createElement('a');
+    var file = new Blob([content], { type: contentType });
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+  }
+
+  function saveSubredditNames() {
+    const jsonData = JSON.stringify(subredditNames);
+    download(jsonData, 'subreddit-names.json', 'application/json');
+  }
+
+  function loadSubredditNames(file) {
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = () => {
+      setSubredditNames(JSON.parse(reader.result));
+    };
+  }
+
   if (subredditNames.length === 0) {
     return (
       <div>
         <InputManager addSubreddit={addSubreddit.bind(this)} />
+        <div className='d-flex justify-content-end'>
+          <button
+            type='button'
+            className='btn btn-primary mr-1'
+            onClick={saveSubredditNames}
+          >
+            Export
+          </button>
+          <label
+            htmlFor='subredditNamesFile'
+            className='btn btn-primary no-margins'
+          >
+            Import
+          </label>
+          <input
+            onChange={(e) => loadSubredditNames(e.target.files[0])}
+            id='subredditNamesFile'
+            type='file'
+            className='hide'
+          />
+        </div>
       </div>
     );
   } else {
@@ -117,6 +159,27 @@ function SubredditDisplay(props) {
     return (
       <div>
         <InputManager addSubreddit={addSubreddit.bind(this)} />
+        <div className='d-flex justify-content-end'>
+          <button
+            type='button'
+            className='btn btn-primary mr-1'
+            onClick={saveSubredditNames}
+          >
+            Export
+          </button>
+          <label
+            htmlFor='subredditNamesFile'
+            className='btn btn-primary no-margins'
+          >
+            Import
+          </label>
+          <input
+            onChange={(e) => loadSubredditNames(e.target.files[0])}
+            id='subredditNamesFile'
+            type='file'
+            className='hide'
+          />
+        </div>
         <div>
           <h4>Subscribed subreddits</h4>
           <ol>{subredditNameList}</ol>

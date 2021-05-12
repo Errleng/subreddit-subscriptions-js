@@ -16,9 +16,10 @@ router.get('/valid/subreddit/:subredditName', (req, res) => {
 
 function getSubmissionPreviewImageUrls(submission) {
   const imageUrls = [];
+
   // sometimes there can be a preview property but preview.enabled is false
-  if (Object.prototype.hasOwnProperty.call(submission, 'preview') &&
-    submission.preview.enabled) {
+  if (Object.prototype.hasOwnProperty.call(submission, 'preview')
+    && submission.preview.enabled) {
     // mostly arbitrary, since there's no official documentation on preview image resolutions
     const previewImages = submission.preview.images[0].resolutions;
     const MAX_PREVIEW_RESOLUTION_INDEX = 3;
@@ -28,8 +29,8 @@ function getSubmissionPreviewImageUrls(submission) {
       ].url,
     );
   } else if (
-    Object.prototype.hasOwnProperty.call(submission, 'is_gallery') &&
-    submission.is_gallery
+    Object.prototype.hasOwnProperty.call(submission, 'is_gallery')
+    && submission.is_gallery
   ) {
     if (Object.prototype.hasOwnProperty.call(submission, 'gallery_data')) {
       const galleryImages = submission.gallery_data.items;
@@ -51,6 +52,24 @@ function getSubmissionPreviewImageUrls(submission) {
     }
   }
   return imageUrls;
+}
+
+async function getSubmissionPreviewImagesWrapper(submission) {
+  // try fetching if ambiguous whether it is image post
+  // currently ambiguous if the submission is not a
+  //   text post (is_self)
+  //   post with previews (preview)
+  //   gallery post (is_gallery == true and gallery_data != null)
+  if (!submission.is_self
+    && (!Object.prototype.hasOwnProperty.call(submission, 'preview')
+      && !((Object.prototype.hasOwnProperty.call(submission, 'is_gallery') && submission.is_gallery)
+        && Object.prototype.hasOwnProperty.call(submission, 'gallery_data')))) {
+    await submission.fetch().then((updatedSubmission) => {
+      console.log(`Fetching data for ambiguous image post: ${submission.title}, ${submission.url}`);
+      submission = updatedSubmission;
+    });
+  }
+  return getSubmissionPreviewImageUrls(submission);
 }
 
 router.get(
@@ -86,17 +105,19 @@ router.get(
     }
 
     sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
-      const modifiedData = data.map((submissionData) => {
+      Promise.all(data.map(async (submissionData) => {
         const modifiedSubmission = submissionData;
-        modifiedSubmission.image_urls = getSubmissionPreviewImageUrls(
-          modifiedSubmission
+        modifiedSubmission.image_urls = await getSubmissionPreviewImagesWrapper(
+          modifiedSubmission,
         );
         return modifiedSubmission;
-      });
-      // console.log(modifiedData);
-      res.send(modifiedData);
+      })).then(
+        (modifiedData) => {
+          res.send(modifiedData);
+        },
+      );
     });
-  }
+  },
 );
 
 module.exports = router;

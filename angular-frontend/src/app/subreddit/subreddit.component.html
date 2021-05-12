@@ -1,4 +1,12 @@
 <div class="d-flex flex-column align-items-center">
   <h2 class="display-1 border-bottom mt-3 mb-3">r/{{name}}</h2>
+  <select (change)='onChangeSortTime($event)' [value]='sortTime' class='form-select w-auto'>
+    <option value='hour'>Hour</option>
+    <option value='day'>Day</option>
+    <option value='week'>Week</option>
+    <option value='month'>Month</option>
+    <option value='year'>Year</option>
+    <option value='all'>All time</option>
+  </select>
   <ss-submission *ngFor="let submissionData of submissionDatas" [data]="submissionData"></ss-submission>
 </div>
