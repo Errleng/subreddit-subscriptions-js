@@ -1,23 +1,24 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http'
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'ss-subreddit',
   templateUrl: './subreddit.component.html',
-  styleUrls: ['./subreddit.component.css']
+  styleUrls: ['./subreddit.component.css'],
 })
 export class SubredditComponent implements OnInit {
-  private _sortTime: string = 'day';
-
   @Input() name: string = '';
-  submissionDatas: {[key: string]: any}[] = [];
+
+  submissionDatas: { [key: string]: any }[] = [];
+
+  private sortTimeInternal: string = 'day';
 
   get sortTime(): string {
-    return this._sortTime;
+    return this.sortTimeInternal;
   }
 
   set sortTime(newSortTime: string) {
-    this._sortTime = newSortTime;
+    this.sortTimeInternal = newSortTime;
     this.loadData();
   }
 
@@ -28,10 +29,10 @@ export class SubredditComponent implements OnInit {
   }
 
   loadData(): void {
-    let url: string = `/api/subreddit/${this.name}/top/${this.sortTime}/2`;
+    const url: string = `/api/subreddit/${this.name}/top/${this.sortTime}/2`;
     this.http.get(url).subscribe({
-      next: data => this.submissionDatas = Object.values(data),
-      error: err => console.error(`Error getting data for r/${this.name} submission: ${err}`),
+      next: (data) => { this.submissionDatas = Object.values(data); },
+      error: (err) => console.error(`Error getting data for r/${this.name} submission: ${err}`),
     });
   }
 }

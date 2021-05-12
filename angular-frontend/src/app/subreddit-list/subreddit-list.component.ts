@@ -1,19 +1,22 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'ss-subreddit-list',
   templateUrl: './subreddit-list.component.html',
-  styleUrls: ['./subreddit-list.component.css']
+  styleUrls: ['./subreddit-list.component.css'],
 })
 export class SubredditListComponent implements OnInit {
   savedSubNamesKey: string = 'subredditNames';
 
   faTrash = faTrash;
+
   searchSubName: string = '';
+
   subredditNames: string[] = [];
+
   sub!: Subscription;
 
   constructor(private http: HttpClient) { }
@@ -28,15 +31,15 @@ export class SubredditListComponent implements OnInit {
   }
 
   addSub(subName: string) {
-    this.http.get(`/api/valid/subreddit/${subName}`, {observe: 'response'}).subscribe(
-      resp => {
+    this.http.get(`/api/valid/subreddit/${subName}`, { observe: 'response' }).subscribe(
+      (resp) => {
         if (resp.ok) {
           this.subredditNames.push(subName);
           localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
         } else {
-          alert(`Could not find r/${subName}`)
+          alert(`Could not find r/${subName}`);
         }
-      }
+      },
     );
   }
 
