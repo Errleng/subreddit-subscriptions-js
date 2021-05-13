@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 
@@ -30,6 +30,14 @@ export class SubredditListComponent implements OnInit {
     }
   }
 
+  static download(content: string, fileName: string, contentType: string): void {
+    const anchor = document.createElement('a');
+    const file = new Blob([content], { type: contentType });
+    anchor.href = URL.createObjectURL(file);
+    anchor.download = fileName;
+    anchor.click();
+  }
+
   addSub(subName: string) {
     this.http.get(`/api/valid/subreddit/${subName}`, { observe: 'response' }).subscribe(
       (resp) => {
@@ -46,5 +54,27 @@ export class SubredditListComponent implements OnInit {
   removeSub(subIndex: number): void {
     this.subredditNames.splice(subIndex, 1);
     localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
+  }
+
+  importSubredditList(event: Event): void {
+    const inputElement: HTMLInputElement = event.target as HTMLInputElement;
+    if (inputElement.files === null) {
+      console.error('Imported file is null');
+      return;
+    }
+
+    const file: File = inputElement.files[0];
+    const fileReader: FileReader = new FileReader();
+    fileReader.onload = () => {
+      if (fileReader.result) {
+        this.subredditNames = JSON.parse(fileReader.result as string);
+        localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
+      }
+    };
+    fileReader.readAsText(file);
+  }
+
+  exportSubredditList(): void {
+    SubredditListComponent.download(JSON.stringify(this.subredditNames), 'subreddit-names.json', 'application/json');
   }
 }

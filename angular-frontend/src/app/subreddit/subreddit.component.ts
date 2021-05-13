@@ -11,14 +11,14 @@ export class SubredditComponent implements OnInit {
 
   submissionDatas: { [key: string]: any }[] = [];
 
-  private sortTimeInternal: string = 'day';
+  private _sortTime: string = 'day';
 
   get sortTime(): string {
-    return this.sortTimeInternal;
+    return this._sortTime;
   }
 
   set sortTime(newSortTime: string) {
-    this.sortTimeInternal = newSortTime;
+    this._sortTime = newSortTime;
     this.loadData();
   }
 
@@ -29,7 +29,7 @@ export class SubredditComponent implements OnInit {
   }
 
   loadData(): void {
-    const url: string = `/api/subreddit/${this.name}/top/${this.sortTime}/2`;
+    const url: string = `/api/subreddit/${this.name}/top/${this.sortTime}/10`;
     this.http.get(url).subscribe({
       next: (data) => { this.submissionDatas = Object.values(data); },
       error: (err) => console.error(`Error getting data for r/${this.name} submission: ${err}`),
