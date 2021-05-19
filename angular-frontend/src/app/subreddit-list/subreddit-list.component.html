@@ -19,6 +19,6 @@
     </li>
   </ol>
 </div>
-<div *ngFor="let name of subredditNames">
+<div (keydown)='onKeyDown($event)' *ngFor="let name of subredditNames">
   <ss-subreddit [name]="name"></ss-subreddit>
 </div>

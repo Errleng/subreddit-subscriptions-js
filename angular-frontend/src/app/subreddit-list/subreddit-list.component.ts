@@ -1,14 +1,22 @@
+import { FocusKeyManager } from '@angular/cdk/a11y';
 import { HttpClient } from '@angular/common/http';
-import { Component, Input, OnInit } from '@angular/core';
+import {
+  AfterViewInit, Component, OnInit, QueryList, ViewChildren,
+} from '@angular/core';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
+import { SubredditComponent } from '../subreddit/subreddit.component';
 
 @Component({
   selector: 'ss-subreddit-list',
   templateUrl: './subreddit-list.component.html',
   styleUrls: ['./subreddit-list.component.css'],
 })
-export class SubredditListComponent implements OnInit {
+export class SubredditListComponent implements OnInit, AfterViewInit {
+  private keyEventManager!: FocusKeyManager<SubredditComponent>;
+
+  @ViewChildren(SubredditComponent) subreddits!: QueryList<SubredditComponent>;
+
   savedSubNamesKey: string = 'subredditNames';
 
   faTrash = faTrash;
@@ -30,12 +38,31 @@ export class SubredditListComponent implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    this.keyEventManager = new FocusKeyManager(this.subreddits);
+  }
+
   static download(content: string, fileName: string, contentType: string): void {
     const anchor = document.createElement('a');
     const file = new Blob([content], { type: contentType });
     anchor.href = URL.createObjectURL(file);
     anchor.download = fileName;
     anchor.click();
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    console.log(event);
+    const { key } = event;
+    switch (key) {
+      case 'S':
+        this.keyEventManager.setNextItemActive();
+        break;
+      case 'F':
+        this.keyEventManager.setPreviousItemActive();
+        break;
+      default:
+        break;
+    }
   }
 
   addSub(subName: string) {
