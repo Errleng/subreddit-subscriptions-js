@@ -14,25 +14,28 @@ router.get('/valid/subreddit/:subredditName', (req, res) => {
     .catch(() => res.sendStatus(404));
 });
 
+function hasProp(object, propertyName) {
+  return Object.prototype.hasOwnProperty.call(object, propertyName) && (object[propertyName] !== null) && (object[propertyName] !== undefined);
+}
+
 function getSubmissionPreviewImageUrls(submission) {
   const imageUrls = [];
 
-  // sometimes there can be a preview property but preview.enabled is false
-  if (Object.prototype.hasOwnProperty.call(submission, 'preview')
-    && submission.preview.enabled) {
-    // mostly arbitrary, since there's no official documentation on preview image resolutions
-    const previewImages = submission.preview.images[0].resolutions;
-    const MAX_PREVIEW_RESOLUTION_INDEX = 3;
-    imageUrls.push(
-      previewImages[
-        Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
-      ].url,
-    );
-  } else if (
-    Object.prototype.hasOwnProperty.call(submission, 'is_gallery')
-    && submission.is_gallery
-  ) {
-    if (Object.prototype.hasOwnProperty.call(submission, 'gallery_data')) {
+  if (hasProp(submission, 'preview')) {
+    const preview = submission.preview;
+    if (hasProp(preview, 'images')) {
+      const images = preview.images;
+      // mostly arbitrary, since there's no official documentation on preview image resolutions
+      const previewImages = images[0].resolutions;
+      const MAX_PREVIEW_RESOLUTION_INDEX = 3;
+      imageUrls.push(
+        previewImages[
+          Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
+        ].url,
+      );
+    }
+  } else if (hasProp(submission, 'is_gallery') && submission.is_gallery) {
+    if (hasProp(submission, 'gallery_data')) {
       const galleryImages = submission.gallery_data.items;
       galleryImages.forEach((image) => {
         const metadata = submission.media_metadata[image.media_id];
@@ -60,16 +63,71 @@ async function getSubmissionPreviewImagesWrapper(submission) {
   //   text post (is_self)
   //   post with previews (preview)
   //   gallery post (is_gallery == true and gallery_data != null)
-  if (!submission.is_self
-    && (!Object.prototype.hasOwnProperty.call(submission, 'preview')
-      && !((Object.prototype.hasOwnProperty.call(submission, 'is_gallery') && submission.is_gallery)
-        && Object.prototype.hasOwnProperty.call(submission, 'gallery_data')))) {
+  if (!submission.is_self &&
+    !(hasProp(submission, 'preview') && hasProp(submission, 'images')) &&
+    !((hasProp(submission, 'is_gallery') && submission.is_gallery) &&
+      hasProp(submission, 'gallery_data'))) {
     await submission.fetch().then((updatedSubmission) => {
       console.log(`Fetching data for ambiguous image post: ${submission.title}, ${submission.url}`);
       submission = updatedSubmission;
     });
   }
   return getSubmissionPreviewImageUrls(submission);
+}
+
+function getMedia(submission) {
+  if (hasProp(submission, 'media_embed')) {
+    const media_embed = submission.media_embed;
+    if (hasProp(media_embed, 'content')) {
+      return { type: 'embed', media: media_embed.content };
+    }
+  }
+
+  if (hasProp(submission, 'media')) {
+    const media = submission.media;
+    if (hasProp(media, 'oembed')) {
+      const oembed = media.oembed;
+      if (hasProp(oembed, 'html')) {
+        return { type: 'html', media: oembed.html };
+      } else if (hasProp(oembed, 'thumbnail_url')) {
+        return { type: 'thumbnail', media: oembed.thumbnail_url };
+      }
+    } else if (hasProp(media, 'reddit_video')) {
+      const reddit_video = media.reddit_video;
+      if (hasProp(reddit_video, 'fallback_url')) {
+        return { type: 'video', media: reddit_video.fallback_url };
+      }
+    }
+  }
+
+  if (hasProp(submission, 'preview')) {
+    const preview = submission.preview;
+    if (hasProp(preview, 'reddit_video_preview')) {
+      const reddit_video_preview = preview.reddit_video_preview;
+      if (hasProp(reddit_video_preview, 'fallback_url')) {
+        return { type: 'video', media: reddit_video_preview.fallback_url };
+      }
+    }
+  }
+
+  return null;
+}
+
+async function getMediaWrapper(submission) {
+  if (!submission.is_self &&
+    !(hasProp(submission, 'media_embed') && hasProp(submission.media_embed, 'content')) &&
+    !(hasProp(submission, 'media') &&
+      ((hasProp(submission.media, 'oembed') &&
+        (hasProp(submission.media.oembed, 'html') || hasProp(submission.media.oembed, 'thumbnail_url'))) ||
+        (hasProp(submission.media, 'reddit_video') && hasProp(submission.media.reddit_video, 'fallback_url'))
+      )) &&
+    !(hasProp(submission, 'preview') && hasProp(submission.preview, 'reddit_video_preview') && hasProp(submission.preview.reddit_video_preview, 'fallback_url'))) {
+    await submission.fetch().then((updatedSubmission) => {
+      console.log(`Fetching data for ambiguous media post: ${submission.title}, ${submission.url}`);
+      submission = updatedSubmission;
+    });
+  }
+  return getMedia(submission);
 }
 
 router.get(
@@ -107,9 +165,37 @@ router.get(
     sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
       Promise.all(data.map(async (submissionData) => {
         const modifiedSubmission = submissionData;
-        modifiedSubmission.image_urls = await getSubmissionPreviewImagesWrapper(
-          modifiedSubmission,
-        );
+
+        // checking media for all non-selftext posts is slow
+        const mediaObject = await getMediaWrapper(modifiedSubmission);
+        if (mediaObject !== null) {
+          switch (mediaObject.type) {
+            case 'embed':
+              modifiedSubmission.html = mediaObject.media;
+              break;
+            case 'html':
+              modifiedSubmission.html = mediaObject.media;
+              break;
+            case 'thumbnail':
+              modifiedSubmission.html = mediaObject.media;
+              break;
+            case 'video':
+              modifiedSubmission.video = mediaObject.media;
+              break;
+            default:
+              throw new Error(`Invalid media type: ${mediaObject}`);
+          }
+        }
+
+        console.log('HTML:', modifiedSubmission.html);
+        console.log('Video:', modifiedSubmission.video);
+
+        if (mediaObject === null) {
+          // however, preview media are preferred over preview images so check images after media
+          modifiedSubmission.image_urls = await getSubmissionPreviewImagesWrapper(
+            modifiedSubmission,
+          );
+        }
         return modifiedSubmission;
       })).then(
         (modifiedData) => {
