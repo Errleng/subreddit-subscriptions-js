@@ -54,7 +54,6 @@ export class SubmissionComponent implements OnInit, FocusableOption {
   }
 
   onMediaSeekCompletion(event: any) {
-    console.log(event.target);
     if (this.audioElem) {
       this.audioElem.nativeElement.currentTime = event.target.currentTime;
     }

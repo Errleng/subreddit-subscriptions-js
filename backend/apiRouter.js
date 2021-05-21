@@ -15,7 +15,11 @@ router.get('/valid/subreddit/:subredditName', (req, res) => {
 });
 
 function hasProp(object, propertyName) {
-  return Object.prototype.hasOwnProperty.call(object, propertyName) && (object[propertyName] !== null) && (object[propertyName] !== undefined);
+  return (
+    Object.prototype.hasOwnProperty.call(object, propertyName) &&
+    object[propertyName] !== null &&
+    object[propertyName] !== undefined
+  );
 }
 
 function getSubmissionPreviewImageUrls(submission) {
@@ -28,11 +32,18 @@ function getSubmissionPreviewImageUrls(submission) {
       // mostly arbitrary, since there's no official documentation on preview image resolutions
       const previewImages = images[0].resolutions;
       const MAX_PREVIEW_RESOLUTION_INDEX = 3;
-      imageUrls.push(
-        previewImages[
-          Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
-        ].url,
-      );
+
+      let previewImage;
+      if (previewImages.length > 0) {
+        previewImage =
+          previewImages[
+            Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
+          ].url;
+      } else {
+        console.log(submission.url);
+        previewImage = images[0].source.url;
+      }
+      imageUrls.push(previewImage);
     }
   } else if (hasProp(submission, 'is_gallery') && submission.is_gallery) {
     if (hasProp(submission, 'gallery_data')) {
@@ -41,10 +52,16 @@ function getSubmissionPreviewImageUrls(submission) {
         const metadata = submission.media_metadata[image.media_id];
         const previewImages = metadata.p;
 
-        const MAX_PREVIEW_RESOLUTION_INDEX = 3;
-        const imagePreview = previewImages[
-          Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
-        ].u;
+        let imagePreview;
+        if (previewImages.length > 0) {
+          const MAX_PREVIEW_RESOLUTION_INDEX = 3;
+          imagePreview =
+            previewImages[
+              Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
+            ].u;
+        } else {
+          imagePreview = metadata.s.u;
+        }
 
         imageUrls.push(imagePreview);
       });
@@ -63,12 +80,21 @@ async function getSubmissionPreviewImagesWrapper(submission) {
   //   text post (is_self)
   //   post with previews (preview)
   //   gallery post (is_gallery == true and gallery_data != null)
-  if (!submission.is_self &&
-    !(hasProp(submission, 'preview') && hasProp(submission.preview, 'images')) &&
-    !((hasProp(submission, 'is_gallery') && submission.is_gallery) &&
-      hasProp(submission, 'gallery_data'))) {
+  if (
+    !submission.is_self &&
+    !(
+      hasProp(submission, 'preview') && hasProp(submission.preview, 'images')
+    ) &&
+    !(
+      hasProp(submission, 'is_gallery') &&
+      submission.is_gallery &&
+      hasProp(submission, 'gallery_data')
+    )
+  ) {
     await submission.fetch().then((updatedSubmission) => {
-      console.log(`Fetching data for ambiguous image post: ${submission.title}, ${submission.url}`);
+      console.log(
+        `Fetching data for ambiguous image post: ${submission.title}, ${submission.url}`
+      );
       submission = updatedSubmission;
     });
   }
@@ -114,20 +140,55 @@ function getMedia(submission) {
 }
 
 async function getMediaWrapper(submission) {
-  if (!submission.is_self &&
-    !(hasProp(submission, 'media_embed') && hasProp(submission.media_embed, 'content')) &&
-    !(hasProp(submission, 'media') &&
+  if (
+    !submission.is_self &&
+    !(
+      hasProp(submission, 'media_embed') &&
+      hasProp(submission.media_embed, 'content')
+    ) &&
+    !(
+      hasProp(submission, 'media') &&
       ((hasProp(submission.media, 'oembed') &&
-        (hasProp(submission.media.oembed, 'html') || hasProp(submission.media.oembed, 'thumbnail_url'))) ||
-        (hasProp(submission.media, 'reddit_video') && hasProp(submission.media.reddit_video, 'fallback_url'))
-      )) &&
-    !(hasProp(submission, 'preview') && hasProp(submission.preview, 'reddit_video_preview') && hasProp(submission.preview.reddit_video_preview, 'fallback_url'))) {
+        (hasProp(submission.media.oembed, 'html') ||
+          hasProp(submission.media.oembed, 'thumbnail_url'))) ||
+        (hasProp(submission.media, 'reddit_video') &&
+          hasProp(submission.media.reddit_video, 'fallback_url')))
+    ) &&
+    !(
+      hasProp(submission, 'preview') &&
+      hasProp(submission.preview, 'reddit_video_preview') &&
+      hasProp(submission.preview.reddit_video_preview, 'fallback_url')
+    )
+  ) {
     await submission.fetch().then((updatedSubmission) => {
-      console.log(`Fetching data for ambiguous media post: ${submission.title}, ${submission.url}`);
+      console.log(
+        `Fetching data for ambiguous media post: ${submission.title}, ${submission.url}`
+      );
       submission = updatedSubmission;
     });
   }
   return getMedia(submission);
+}
+
+function addMediaData(submission, mediaObject) {
+  if (mediaObject !== null) {
+    switch (mediaObject.type) {
+      case 'embed':
+        submission.html = mediaObject.media;
+        break;
+      case 'html':
+        submission.html = mediaObject.media;
+        break;
+      case 'thumbnail':
+        submission.html = mediaObject.media;
+        break;
+      case 'video':
+        submission.video = mediaObject.media;
+        break;
+      default:
+        throw new Error(`Invalid media type: ${mediaObject}`);
+    }
+  }
 }
 
 router.get(
@@ -163,45 +224,22 @@ router.get(
     }
 
     sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
-      Promise.all(data.map(async (submissionData) => {
-        const modifiedSubmission = submissionData;
-
-        // checking media for all non-selftext posts is very slow
-        const mediaObject = await getMediaWrapper(modifiedSubmission);
-        if (mediaObject !== null) {
-          switch (mediaObject.type) {
-            case 'embed':
-              modifiedSubmission.html = mediaObject.media;
-              break;
-            case 'html':
-              modifiedSubmission.html = mediaObject.media;
-              break;
-            case 'thumbnail':
-              modifiedSubmission.html = mediaObject.media;
-              break;
-            case 'video':
-              modifiedSubmission.video = mediaObject.media;
-              break;
-            default:
-              throw new Error(`Invalid media type: ${mediaObject}`);
-          }
-        }
-
-        if (mediaObject === null) {
-          // checking media after checking preview images is faster, but
-          //   preview media are preferred over preview images so check images after media
-          modifiedSubmission.image_urls = await getSubmissionPreviewImagesWrapper(
-            modifiedSubmission,
-          );
-        }
-        return modifiedSubmission;
-      })).then(
-        (modifiedData) => {
-          res.send(modifiedData);
-        },
-      );
+      Promise.all(
+        data.map((submissionData) => {
+          return submissionData.fetch().then((updatedData) => {
+            const modifiedSubmission = updatedData;
+            const mediaObject = getMedia(modifiedSubmission);
+            addMediaData(modifiedSubmission, mediaObject);
+            if (mediaObject === null) {
+              modifiedSubmission.image_urls =
+                getSubmissionPreviewImageUrls(modifiedSubmission);
+            }
+            return modifiedSubmission;
+          });
+        })
+      ).then((modifiedData) => res.send(modifiedData));
     });
-  },
+  }
 );
 
 module.exports = router;

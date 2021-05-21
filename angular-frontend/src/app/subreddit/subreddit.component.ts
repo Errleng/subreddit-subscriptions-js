@@ -49,7 +49,6 @@ export class SubredditComponent implements OnInit, AfterViewInit, FocusableOptio
   }
 
   onKeyDown(event: KeyboardEvent) {
-    console.log(event);
     const { key } = event;
     switch (key) {
       case 's':
