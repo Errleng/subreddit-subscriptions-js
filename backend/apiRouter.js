@@ -64,7 +64,7 @@ async function getSubmissionPreviewImagesWrapper(submission) {
   //   post with previews (preview)
   //   gallery post (is_gallery == true and gallery_data != null)
   if (!submission.is_self &&
-    !(hasProp(submission, 'preview') && hasProp(submission, 'images')) &&
+    !(hasProp(submission, 'preview') && hasProp(submission.preview, 'images')) &&
     !((hasProp(submission, 'is_gallery') && submission.is_gallery) &&
       hasProp(submission, 'gallery_data'))) {
     await submission.fetch().then((updatedSubmission) => {
@@ -166,7 +166,7 @@ router.get(
       Promise.all(data.map(async (submissionData) => {
         const modifiedSubmission = submissionData;
 
-        // checking media for all non-selftext posts is slow
+        // checking media for all non-selftext posts is very slow
         const mediaObject = await getMediaWrapper(modifiedSubmission);
         if (mediaObject !== null) {
           switch (mediaObject.type) {
@@ -187,11 +187,9 @@ router.get(
           }
         }
 
-        console.log('HTML:', modifiedSubmission.html);
-        console.log('Video:', modifiedSubmission.video);
-
         if (mediaObject === null) {
-          // however, preview media are preferred over preview images so check images after media
+          // checking media after checking preview images is faster, but
+          //   preview media are preferred over preview images so check images after media
           modifiedSubmission.image_urls = await getSubmissionPreviewImagesWrapper(
             modifiedSubmission,
           );
