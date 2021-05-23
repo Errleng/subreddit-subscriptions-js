@@ -226,6 +226,9 @@ router.get(
     sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
       Promise.all(
         data.map((submissionData) => {
+          if (submissionData.is_self) {
+            return submissionData;
+          }
           return submissionData.fetch().then((updatedData) => {
             const modifiedSubmission = updatedData;
             const mediaObject = getMedia(modifiedSubmission);

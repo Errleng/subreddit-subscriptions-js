@@ -38,7 +38,7 @@ export class SubmissionComponent implements OnInit, FocusableOption {
 
   focus(origin?: FocusOrigin): void {
     this.card.nativeElement.focus({ preventScroll: true });
-    this.card.nativeElement.scrollIntoView(true);
+    this.card.nativeElement.scrollIntoView(true, { behavior: 'smooth' });
   }
 
   onMediaPlay() {

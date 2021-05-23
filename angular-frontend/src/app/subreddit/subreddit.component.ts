@@ -45,7 +45,8 @@ export class SubredditComponent implements OnInit, AfterViewInit, FocusableOptio
   }
 
   focus(origin?: FocusOrigin): void {
-    this.subredditTitle.nativeElement.focus();
+    this.subredditTitle.nativeElement.focus({ preventScroll: true });
+    this.subredditTitle.nativeElement.scrollIntoView(true, { behavior: 'smooth' });
   }
 
   onKeyDown(event: KeyboardEvent) {
