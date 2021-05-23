@@ -81,6 +81,11 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
     this.subredditNames.splice(subIndex, 1);
     localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
   }
+  
+  clearAllSubs(): void {
+    this.subredditNames = [];
+    localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
+  }
 
   importSubredditList(event: Event): void {
     const inputElement: HTMLInputElement = event.target as HTMLInputElement;
