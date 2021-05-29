@@ -32,7 +32,7 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     const savedSubNames = localStorage.getItem(this.savedSubNamesKey);
     if (savedSubNames === null) {
-      this.subredditNames = ['personalfinance', 'food', 'sushi', 'ramen'];
+      this.subredditNames = ['personalfinance', 'food']; // placeholder
     } else {
       this.subredditNames = JSON.parse(savedSubNames);
     }
@@ -81,7 +81,7 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
     this.subredditNames.splice(subIndex, 1);
     localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
   }
-  
+
   clearAllSubs(): void {
     this.subredditNames = [];
     localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));

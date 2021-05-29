@@ -52,6 +52,10 @@ function getSubmissionPreviewImageUrls(submission) {
         const metadata = submission.media_metadata[image.media_id];
         const previewImages = metadata.p;
 
+        if (previewImages === undefined) {
+          return;
+        }
+
         let imagePreview;
         if (previewImages.length > 0) {
           const MAX_PREVIEW_RESOLUTION_INDEX = 3;
@@ -67,7 +71,7 @@ function getSubmissionPreviewImageUrls(submission) {
       });
     } else {
       throw new Error(
-        `Submission has is_gallery (${submission.is_gallery}) but does not have gallery_data (${submission.gallery_data})`
+        `Submission ${submission.url} has is_gallery (${submission.is_gallery}) but does not have gallery_data (${submission.gallery_data})`
       );
     }
   }
@@ -234,8 +238,13 @@ router.get(
             const mediaObject = getMedia(modifiedSubmission);
             addMediaData(modifiedSubmission, mediaObject);
             if (mediaObject === null) {
-              modifiedSubmission.image_urls =
-                getSubmissionPreviewImageUrls(modifiedSubmission);
+              try {
+                modifiedSubmission.image_urls =
+                  getSubmissionPreviewImageUrls(modifiedSubmission);
+              }
+              catch (err) {
+                console.error(`Error while fetching preview images for ${modifiedSubmission.title} (${modifiedSubmission.url}): ${err}`);
+              };
             }
             return modifiedSubmission;
           });
