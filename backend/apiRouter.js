@@ -22,6 +22,10 @@ function hasProp(object, propertyName) {
   );
 }
 
+function isValidThumbnail(thumbnail) {
+  return thumbnail.length > 0 && thumbnail !== 'default' && thumbnail !== 'nsfw';
+}
+
 function getSubmissionPreviewImageUrls(submission) {
   const imageUrls = [];
 
@@ -71,6 +75,10 @@ function getSubmissionPreviewImageUrls(submission) {
       throw new Error(
         `Submission ${submission.url} has is_gallery (${submission.is_gallery}) but does not have gallery_data (${submission.gallery_data})`,
       );
+    }
+  } else if (hasProp(submission, 'thumbnail')) {
+    if (isValidThumbnail(submission.thumbnail)) {
+      imageUrls.push(submission.thumbnail);
     }
   }
   return imageUrls;
