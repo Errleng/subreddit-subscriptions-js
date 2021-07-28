@@ -48,6 +48,12 @@ export class SubmissionComponent implements OnInit, FocusableOption {
     }
   }
 
+  onMediaPlaying() {
+    if (this.audioElem) {
+      this.audioElem.nativeElement.currentTime = this.videoElem.nativeElement.currentTime
+    }
+  }
+
   onMediaPause() {
     if (this.audioElem) {
       this.audioElem.nativeElement.currentTime = this.videoElem.nativeElement.currentTime;
