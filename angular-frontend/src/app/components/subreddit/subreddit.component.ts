@@ -1,8 +1,9 @@
 import { FocusableOption, FocusKeyManager, FocusOrigin } from '@angular/cdk/a11y';
-import { HttpClient } from '@angular/common/http';
 import {
-  AfterViewInit, Component, ElementRef, Input, OnInit, QueryList, ViewChild, ViewChildren,
+  AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren
 } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { RedditService } from 'src/app/services/reddit/reddit.service';
 import { SubmissionComponent } from '../submission/submission.component';
 
 @Component({
@@ -10,10 +11,12 @@ import { SubmissionComponent } from '../submission/submission.component';
   templateUrl: './subreddit.component.html',
   styleUrls: ['./subreddit.component.css'],
 })
-export class SubredditComponent implements OnInit, AfterViewInit, FocusableOption {
+export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, FocusableOption {
   private _sortTime: string = 'day';
 
   private keyEventManager!: FocusKeyManager<SubmissionComponent>;
+
+  private sub!: Subscription
 
   @Input() name: string = '';
 
@@ -34,7 +37,7 @@ export class SubredditComponent implements OnInit, AfterViewInit, FocusableOptio
     this.loadData();
   }
 
-  constructor(private http: HttpClient) { }
+  constructor(private redditService: RedditService) { }
 
   ngOnInit(): void {
     this.loadData();
@@ -42,6 +45,11 @@ export class SubredditComponent implements OnInit, AfterViewInit, FocusableOptio
 
   ngAfterViewInit(): void {
     this.keyEventManager = new FocusKeyManager(this.submissions);
+  }
+
+  ngOnDestroy(): void {
+    console.log('deleted request for', this.name)
+    this.sub.unsubscribe();
   }
 
   focus(origin?: FocusOrigin): void {
@@ -64,10 +72,9 @@ export class SubredditComponent implements OnInit, AfterViewInit, FocusableOptio
   }
 
   loadData(): void {
-    const url: string = `/api/subreddit/${this.name}/top/${this.sortTime}/10`;
-    this.http.get(url).subscribe({
-      next: (data) => { this.submissionDatas = Object.values(data); },
-      error: (err) => console.error(`Error getting data for r/${this.name} submission: ${err}`),
+    this.sub = this.redditService.getSubmissions(this.name, this.sortTime).subscribe({
+      next: (data: object) => { this.submissionDatas = Object.values(data); },
+      error: (err: string) => console.error(`Error getting data for r/${this.name} submission: ${err}`),
     });
   }
 }

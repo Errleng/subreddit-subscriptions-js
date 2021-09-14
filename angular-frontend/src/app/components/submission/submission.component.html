@@ -9,7 +9,7 @@
       <img *ngFor="let imgUrl of data.image_urls" [src]="imgUrl" class="card-img-bottom" alt="submission preview">
     </div>
     <div *ngIf="data.video" class="card-body">
-      <video #videoElem (play)="onMediaPlay()" (playing)="onMediaPlaying()" (pause)="onMediaPause()"
+      <video #videoElem (playing)="onMediaPlaying()" (pause)="onMediaPause()"
         (seeked)="onMediaSeekCompletion($event)" controls>
         <source [src]="data.video">
       </video>

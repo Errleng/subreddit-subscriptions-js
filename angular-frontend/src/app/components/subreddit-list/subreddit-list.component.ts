@@ -1,10 +1,10 @@
 import { FocusKeyManager } from '@angular/cdk/a11y';
-import { HttpClient } from '@angular/common/http';
 import {
-  AfterViewInit, Component, OnInit, QueryList, ViewChildren,
+  AfterViewInit, Component, OnInit, QueryList, ViewChildren
 } from '@angular/core';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
+import { RedditService } from 'src/app/services/reddit/reddit.service';
 import { SubredditComponent } from '../subreddit/subreddit.component';
 
 @Component({
@@ -27,7 +27,7 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   sub!: Subscription;
 
-  constructor(private http: HttpClient) { }
+  constructor(private redditService: RedditService) { }
 
   ngOnInit(): void {
     const savedSubNames = localStorage.getItem(this.savedSubNamesKey);
@@ -65,8 +65,8 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   }
 
   addSub(subName: string) {
-    this.http.get(`/api/valid/subreddit/${subName}`, { observe: 'response' }).subscribe(
-      (resp) => {
+    this.redditService.checkSubredditValid(subName).subscribe(
+      (resp: Response) => {
         if (resp.ok) {
           this.subredditNames.push(subName);
           localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
@@ -90,7 +90,7 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   importSubredditList(event: Event): void {
     const inputElement: HTMLInputElement = event.target as HTMLInputElement;
     if (inputElement.files === null) {
-      console.error('Imported file is null');
+      console.error('Imported file is null', event);
       return;
     }
 
