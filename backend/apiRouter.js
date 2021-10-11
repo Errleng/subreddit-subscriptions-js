@@ -204,17 +204,9 @@ function addMediaData(submission, mediaObject) {
 router.get(
   '/subreddit/:subredditName/:sortType/:sortTime/:numSubmissions',
   (req, res) => {
-    let requestCancelled = false;
-    req.on('aborted', (err) => {
-      console.log('Request was cancelled for', subreddit.display_name)
-      requestCancelled = true;
-    })
-
     const { sortType, sortTime } = req.params;
     const numSubmissions = parseInt(req.params.numSubmissions, 10);
     const subreddit = reddit.getSubreddit(req.params.subredditName);
-
-    console.log('request for', subreddit.display_name)
 
     let sortFunction = null;
     switch (sortType) {
@@ -241,35 +233,29 @@ router.get(
       throw new Error(`Invalid sort time: ${sortTime}`);
     }
 
-    try {
-      sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
-        console.log('request continued for', subreddit.display_name, requestCancelled)
-        if (!requestCancelled) {
-          Promise.all(
-            data.map((submissionData) => {
-              if (submissionData.is_self) {
-                return submissionData;
+    sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
+      Promise.all(
+        data.map((submissionData) => {
+          if (submissionData.is_self) {
+            return submissionData;
+          }
+          return submissionData.fetch().then((updatedData) => {
+            const modifiedSubmission = updatedData;
+            const mediaObject = getMedia(modifiedSubmission);
+            addMediaData(modifiedSubmission, mediaObject);
+            if (mediaObject === null) {
+              try {
+                modifiedSubmission.image_urls = getSubmissionPreviewImageUrls(modifiedSubmission);
+              } catch (err) {
+                console.error(`Error while fetching preview images for ${modifiedSubmission.title} (${modifiedSubmission.url}): ${err}`);
               }
-              return submissionData.fetch().then((updatedData) => {
-                const modifiedSubmission = updatedData;
-                const mediaObject = getMedia(modifiedSubmission);
-                addMediaData(modifiedSubmission, mediaObject);
-                if (mediaObject === null) {
-                  try {
-                    modifiedSubmission.image_urls = getSubmissionPreviewImageUrls(modifiedSubmission);
-                  } catch (err) {
-                    console.error(`Error while fetching preview images for ${modifiedSubmission.title} (${modifiedSubmission.url}): ${err}`);
-                  }
-                }
-                return modifiedSubmission;
-              });
-            }),
-          ).then((modifiedData) => res.send(modifiedData));
-        }
-      });
-    } catch(e) {
-    }
-  }
+            }
+            return modifiedSubmission;
+          });
+        }),
+      ).then((modifiedData) => res.send(modifiedData));
+    });
+  },
 );
 
 module.exports = router;

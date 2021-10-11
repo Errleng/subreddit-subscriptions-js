@@ -48,7 +48,6 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
   }
 
   ngOnDestroy(): void {
-    console.log('deleted request for', this.name)
     this.sub.unsubscribe();
   }
 
