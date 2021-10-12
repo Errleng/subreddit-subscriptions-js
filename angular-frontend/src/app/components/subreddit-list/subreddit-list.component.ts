@@ -5,6 +5,7 @@ import {
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 import { RedditService } from 'src/app/services/reddit/reddit.service';
+import { SettingsService } from 'src/app/services/settings/settings.service';
 import { SubredditComponent } from '../subreddit/subreddit.component';
 
 @Component({
@@ -17,8 +18,6 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   @ViewChildren(SubredditComponent) subreddits!: QueryList<SubredditComponent>;
 
-  savedSubNamesKey: string = 'subredditNames';
-
   faTrash = faTrash;
 
   searchSubName: string = '';
@@ -27,10 +26,10 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   sub!: Subscription;
 
-  constructor(private redditService: RedditService) { }
+  constructor(private redditService: RedditService, private settings: SettingsService) { }
 
   ngOnInit(): void {
-    const savedSubNames = localStorage.getItem(this.savedSubNamesKey);
+    const savedSubNames = this.settings.getSubredditList();
     if (savedSubNames === null) {
       this.subredditNames = ['personalfinance', 'food']; // placeholder
     } else {
@@ -40,14 +39,6 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.keyEventManager = new FocusKeyManager(this.subreddits);
-  }
-
-  static download(content: string, fileName: string, contentType: string): void {
-    const anchor = document.createElement('a');
-    const file = new Blob([content], { type: contentType });
-    anchor.href = URL.createObjectURL(file);
-    anchor.download = fileName;
-    anchor.click();
   }
 
   onKeyDown(event: KeyboardEvent) {
@@ -69,7 +60,7 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
       (resp: Response) => {
         if (resp.ok) {
           this.subredditNames.push(subName);
-          localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
+          this.settings.updateSubredditList(this.subredditNames);
         } else {
           alert(`Could not find r/${subName}`);
         }
@@ -79,12 +70,12 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   removeSub(subIndex: number): void {
     this.subredditNames.splice(subIndex, 1);
-    localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
+    this.settings.updateSubredditList(this.subredditNames);
   }
 
   clearAllSubs(): void {
     this.subredditNames = [];
-    localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
+    this.settings.updateSubredditList(this.subredditNames);
   }
 
   importSubredditList(event: Event): void {
@@ -95,17 +86,13 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
     }
 
     const file: File = inputElement.files[0];
-    const fileReader: FileReader = new FileReader();
-    fileReader.onload = () => {
-      if (fileReader.result) {
-        this.subredditNames = JSON.parse(fileReader.result as string);
-        localStorage.setItem(this.savedSubNamesKey, JSON.stringify(this.subredditNames));
-      }
-    };
-    fileReader.readAsText(file);
+    this.settings.importSubredditList(file).then((names) => {
+      this.subredditNames = names;
+      this.settings.updateSubredditList(this.subredditNames);
+    })
   }
 
   exportSubredditList(): void {
-    SubredditListComponent.download(JSON.stringify(this.subredditNames), 'subreddit-names.json', 'application/json');
+    this.settings.exportSubredditList(this.subredditNames);
   }
 }
