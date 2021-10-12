@@ -26,14 +26,14 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   sub!: Subscription;
 
-  constructor(private redditService: RedditService, private settings: SettingsService) { }
+  constructor(private redditService: RedditService, private settingsService: SettingsService) { }
 
   ngOnInit(): void {
-    const savedSubNames = this.settings.getSubredditList();
+    const savedSubNames = this.settingsService.getSubredditList();
     if (savedSubNames === null) {
       this.subredditNames = ['personalfinance', 'food']; // placeholder
     } else {
-      this.subredditNames = JSON.parse(savedSubNames);
+      this.subredditNames = savedSubNames;
     }
   }
 
@@ -42,16 +42,19 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   }
 
   onKeyDown(event: KeyboardEvent) {
-    const { key } = event;
-    switch (key) {
-      case 'E':
-        this.keyEventManager.setNextItemActive();
-        break;
-      case 'O':
-        this.keyEventManager.setPreviousItemActive();
-        break;
-      default:
-        break;
+    const settings = this.settingsService.getSettings();
+    if (settings !== null) {
+      const { key } = event;
+      switch (key) {
+        case settings.scrollSubredditDownKey:
+          this.keyEventManager.setNextItemActive();
+          break;
+        case settings.scrollSubredditUpKey:
+          this.keyEventManager.setPreviousItemActive();
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -60,7 +63,7 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
       (resp: Response) => {
         if (resp.ok) {
           this.subredditNames.push(subName);
-          this.settings.updateSubredditList(this.subredditNames);
+          this.settingsService.updateSubredditList(this.subredditNames);
         } else {
           alert(`Could not find r/${subName}`);
         }
@@ -70,12 +73,12 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   removeSub(subIndex: number): void {
     this.subredditNames.splice(subIndex, 1);
-    this.settings.updateSubredditList(this.subredditNames);
+    this.settingsService.updateSubredditList(this.subredditNames);
   }
 
   clearAllSubs(): void {
     this.subredditNames = [];
-    this.settings.updateSubredditList(this.subredditNames);
+    this.settingsService.updateSubredditList(this.subredditNames);
   }
 
   importSubredditList(event: Event): void {
@@ -86,13 +89,13 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
     }
 
     const file: File = inputElement.files[0];
-    this.settings.importSubredditList(file).then((names) => {
+    this.settingsService.importSubredditList(file).then((names) => {
       this.subredditNames = names;
-      this.settings.updateSubredditList(this.subredditNames);
+      this.settingsService.updateSubredditList(this.subredditNames);
     })
   }
 
   exportSubredditList(): void {
-    this.settings.exportSubredditList(this.subredditNames);
+    this.settingsService.exportSubredditList(this.subredditNames);
   }
 }

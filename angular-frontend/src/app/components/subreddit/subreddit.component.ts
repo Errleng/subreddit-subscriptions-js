@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { RedditService } from 'src/app/services/reddit/reddit.service';
+import { SettingsService } from 'src/app/services/settings/settings.service';
 import { SubmissionComponent } from '../submission/submission.component';
 
 @Component({
@@ -37,9 +38,9 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
     this.loadData();
   }
 
-  constructor(private redditService: RedditService) { }
+  constructor(private redditService: RedditService, private settingsService: SettingsService) { }
 
-  ngOnInit(): void {
+  ngOnInit(): void /*  */ {
     this.loadData();
   }
 
@@ -57,19 +58,22 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
   }
 
   onKeyDown(event: KeyboardEvent) {
-    const { key } = event;
-    switch (key) {
-      case 'e':
-        this.keyEventManager.setNextItemActive();
-        break;
-      case 'o':
-        this.keyEventManager.setPreviousItemActive();
-        break;
-      case 'a':
-        this.openCurrentItem();
-        break;
-      default:
-        break;
+    const settings = this.settingsService.getSettings();
+    if (settings !== null) {
+      const { key } = event;
+      switch (key) {
+        case settings.scrollSubmissionDownKey:
+          this.keyEventManager.setNextItemActive();
+          break;
+        case settings.scrollSubmissionUpKey:
+          this.keyEventManager.setPreviousItemActive();
+          break;
+        case settings.openSubmissionKey:
+          this.openCurrentItem();
+          break;
+        default:
+          break;
+      }
     }
   }
 

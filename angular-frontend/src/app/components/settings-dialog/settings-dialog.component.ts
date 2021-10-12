@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { SettingsService } from 'src/app/services/settings/settings.service';
 
 @Component({
   selector: 'ss-settings-dialog',
@@ -9,19 +10,23 @@ import { FormControl, FormGroup } from '@angular/forms';
 export class SettingsDialogComponent implements OnInit {
   public settingsForm!: FormGroup;
 
-  constructor() { }
+  constructor(private settingsService: SettingsService) { }
 
   ngOnInit(): void {
     this.settingsForm = new FormGroup({
-      scrollSubredditUpKey: new FormControl(''),
-      scrollSubredditDownKey: new FormControl(''),
-      scrollSubmissionUpKey: new FormControl(''),
-      scrollSubmissionDownKey: new FormControl(''),
-      openSubmissionKey: new FormControl(''),
+      scrollSubredditUpKey: new FormControl('', [Validators.maxLength(1), Validators.pattern(/[a-zA-Z]/)]),
+      scrollSubredditDownKey: new FormControl('', [Validators.maxLength(1), Validators.pattern(/[a-zA-Z]/)]),
+      scrollSubmissionUpKey: new FormControl('', [Validators.maxLength(1), Validators.pattern(/[a-zA-Z]/)]),
+      scrollSubmissionDownKey: new FormControl('', [Validators.maxLength(1), Validators.pattern(/[a-zA-Z]/)]),
+      openSubmissionKey: new FormControl('', [Validators.maxLength(1), Validators.pattern(/[a-zA-Z]/)]),
     })
+    const settings = this.settingsService.getSettings();
+    if (settings !== null) {
+      this.settingsForm.setValue(settings);
+    }
   }
 
   onSave(): void {
-    console.log('Saving settings', this.settingsForm.controls);
+    this.settingsService.updateSettings(this.settingsForm.value);
   }
 }

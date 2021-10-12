@@ -1,11 +1,24 @@
 import { Injectable } from '@angular/core';
 
+export interface ISettings {
+  scrollSubredditUpKey: string;
+  scrollSubredditDownKey: string;
+  scrollSubmissionUpKey: string;
+  scrollSubmissionDownKey: string;
+  openSubmissionKey: string;
+}
+
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SettingsService {
+  private readonly settingsListKey: string = 'settings';
+
+  private readonly subredditListKey: string = 'subredditNames';
+
   private readonly subredditListFile: string = 'subreddit-names.json';
-  private readonly savedSubNamesKey: string = 'subredditNames';
+
+  private readonly settingsListFile: string = 'subreddit-subscriptions-settings.json';
 
   constructor() { }
 
@@ -17,12 +30,45 @@ export class SettingsService {
     anchor.click();
   }
 
-  getSubredditList(): string | null {
-    return localStorage.getItem(this.savedSubNamesKey);
+  getSettings(): ISettings | null {
+    const settingsJson = localStorage.getItem(this.settingsListKey);
+    if (settingsJson !== null) {
+      return JSON.parse(settingsJson);
+    }
+    return null;
+  }
+
+  updateSettings(settings: ISettings): void {
+    localStorage.setItem(this.settingsListKey, JSON.stringify(settings));
+  }
+
+  async importSettings(file: File): Promise<string[]> {
+    return new Promise<string[]>((resolve) => {
+      const fileReader: FileReader = new FileReader();
+      fileReader.onload = () => {
+        if (fileReader.result) {
+          const subredditNames = JSON.parse(fileReader.result as string);
+          resolve(subredditNames);
+        }
+      };
+      fileReader.readAsText(file);
+    });
+  }
+
+  exportSettings(settings: object): void {
+    this.download(JSON.stringify(settings), this.settingsListFile, 'application/json');
+  }
+
+  getSubredditList(): string[] | null {
+    const subredditListJson = localStorage.getItem(this.subredditListKey);
+    if (subredditListJson !== null) {
+      return JSON.parse(subredditListJson);
+    }
+    return null;
   }
 
   updateSubredditList(subredditNames: string[]): void {
-    localStorage.setItem(this.savedSubNamesKey, JSON.stringify(subredditNames));
+    localStorage.setItem(this.subredditListKey, JSON.stringify(subredditNames));
   }
 
   async importSubredditList(file: File): Promise<string[]> {

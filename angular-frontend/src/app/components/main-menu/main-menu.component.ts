@@ -16,9 +16,5 @@ export class MainMenuComponent implements OnInit {
 
   openSettingsDialog(): void {
     const dialogRef = this.dialog.open(SettingsDialogComponent);
-
-    dialogRef.afterClosed().subscribe((result) => {
-      console.log(`Dialog result: ${result}`);
-    });
   }
 }

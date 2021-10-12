@@ -21,7 +21,6 @@ export class RateLimiterService implements HttpInterceptor {
           tap((res) => {
             if (res.type === HttpEventType.Response) {
               this.processNextRequest();
-              console.log('dispatching next', req.url);
             }
           }),
           catchError((err) => {
@@ -42,7 +41,6 @@ export class RateLimiterService implements HttpInterceptor {
           }
           if (index === 0) {
             this.dispatchRequest();
-            console.log('dispatching', req.url);
           }
         }),
       );

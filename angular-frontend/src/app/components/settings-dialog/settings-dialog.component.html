@@ -10,7 +10,7 @@
         <div>
             <mat-form-field>
                 <mat-label>Subreddit scroll down key</mat-label>
-                <input matInput formControlName="scrollSubredditUpKey">
+                <input matInput formControlName="scrollSubredditDownKey">
             </mat-form-field>
         </div>
         <div>
@@ -22,7 +22,7 @@
         <div>
             <mat-form-field>
                 <mat-label>Submission scroll down key</mat-label>
-                <input matInput formControlName="scrollSubmissionUpKey">
+                <input matInput formControlName="scrollSubmissionDownKey">
             </mat-form-field>
         </div>
         <div>
@@ -34,6 +34,6 @@
     </mat-dialog-content>
     <mat-dialog-actions align="end">
         <button mat-button mat-dialog-close>Cancel</button>
-        <button mat-button mat-dialog-close cdkFocusInitial type="submit">Save</button>
+        <button mat-button mat-dialog-close type="submit" [disabled]="!settingsForm.valid">Save</button>
     </mat-dialog-actions>
 </form>
