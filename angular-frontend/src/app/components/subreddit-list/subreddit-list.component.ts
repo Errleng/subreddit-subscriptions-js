@@ -53,10 +53,10 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   onKeyDown(event: KeyboardEvent) {
     const { key } = event;
     switch (key) {
-      case 'S':
+      case 'E':
         this.keyEventManager.setNextItemActive();
         break;
-      case 'F':
+      case 'O':
         this.keyEventManager.setPreviousItemActive();
         break;
       default:

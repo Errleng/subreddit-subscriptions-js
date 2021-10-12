@@ -1,10 +1,12 @@
-import { HttpEvent, HttpEventType, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import {
+  HttpEvent, HttpEventType, HttpHandler, HttpInterceptor, HttpRequest
+} from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { observable, Observable, ReplaySubject } from 'rxjs';
-import { catchError, finalize, switchMap, tap } from 'rxjs/operators'
+import { Observable, ReplaySubject } from 'rxjs';
+import { catchError, finalize, switchMap, tap } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RateLimiterService implements HttpInterceptor {
   constructor() { }
@@ -13,42 +15,36 @@ export class RateLimiterService implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (req.url.match(/\/api\/subreddit\/.*/)) {
-      console.log(`intercepted request: ${req.url}`, this.queue);
-
       const requestQueueItem$ = new ReplaySubject<any>();
       const result$ = requestQueueItem$.pipe(
-        switchMap(() => {
-          return next.handle(req).pipe(
-            tap(res => {
-              console.log('requested', req.url, res, this.queue)
-              if (res.type == HttpEventType.Response) {
-                this.processNextRequest();
-              }
-            }),
-            catchError(err => {
-              console.error(err)
+        switchMap(() => next.handle(req).pipe(
+          tap((res) => {
+            if (res.type === HttpEventType.Response) {
               this.processNextRequest();
-              throw err;
-            }),
-            finalize(() => {
-              const index = this.queue.findIndex(r => r === requestQueueItem$);
-              if (index !== -1) {
-                this.queue.splice(index, 1);
-              }
-              console.log('finished', req.url, index, this.queue)
-            })
-          )
-        }),
+              console.log('dispatching next', req.url);
+            }
+          }),
+          catchError((err) => {
+            this.processNextRequest();
+            throw err;
+          }),
+          finalize(() => {
+            const index = this.queue.findIndex((r) => r === requestQueueItem$);
+            if (index !== -1) {
+              this.queue.splice(index, 1);
+            }
+          }),
+        )),
         finalize(() => {
-          const index = this.queue.findIndex(r => r === requestQueueItem$);
+          const index = this.queue.findIndex((r) => r === requestQueueItem$);
           if (index !== -1) {
             this.queue.splice(index, 1);
           }
-          if (index == 0) {
+          if (index === 0) {
             this.dispatchRequest();
+            console.log('dispatching', req.url);
           }
-          console.log('deleted', req.url, index, this.queue)
-        })
+        }),
       );
       this.queue.push(requestQueueItem$);
 
@@ -57,9 +53,8 @@ export class RateLimiterService implements HttpInterceptor {
       }
 
       return result$;
-    } else {
-      return next.handle(req);
     }
+    return next.handle(req);
   }
 
   private processNextRequest(): void {
@@ -70,7 +65,6 @@ export class RateLimiterService implements HttpInterceptor {
   }
 
   private dispatchRequest(): void {
-    console.log('dispatching next', this.queue)
     if (this.queue.length > 0) {
       const nextSub$ = this.queue[0];
       nextSub$.next();

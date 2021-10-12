@@ -18,7 +18,6 @@ function SubredditSubmissions(props) {
     props.amount;
 
   useEffect(() => {
-    console.log('fetching data from Reddit');
     fetch(subredditRequest)
       .then((res) => res.json())
       .then((json) => {

@@ -59,11 +59,14 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
   onKeyDown(event: KeyboardEvent) {
     const { key } = event;
     switch (key) {
-      case 's':
+      case 'e':
         this.keyEventManager.setNextItemActive();
         break;
-      case 'f':
+      case 'o':
         this.keyEventManager.setPreviousItemActive();
+        break;
+      case 'a':
+        this.openCurrentItem();
         break;
       default:
         break;
@@ -75,5 +78,12 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
       next: (data: object) => { this.submissionDatas = Object.values(data); },
       error: (err: string) => console.error(`Error getting data for r/${this.name} submission: ${err}`),
     });
+  }
+
+  openCurrentItem(): void {
+    const url = this.keyEventManager.activeItem?.shortlink;
+    if (url !== undefined) {
+      window.open(url);
+    }
   }
 }
