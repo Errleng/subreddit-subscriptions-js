@@ -80,7 +80,7 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
   loadData(): void {
     this.sub = this.redditService.getSubmissions(this.name, this.sortTime).subscribe({
       next: (data: object) => { this.submissionDatas = Object.values(data); },
-      error: (err: string) => console.error(`Error getting data for r/${this.name} submission: ${err}`),
+      error: (err: string) => console.error(`Error getting data for r/${this.name} submission:`, err),
     });
   }
 

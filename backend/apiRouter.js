@@ -1,7 +1,17 @@
 const express = require('express');
+const fs = require('fs');
 
 const router = express.Router();
 const reddit = require('./reddit');
+
+let config = null;
+try {
+  config = fs.readFileSync('./config.json');
+} catch (err) {
+  if (err.code !== 'ENOENT') {
+    console.error('Error when reading config file', err);
+  }
+}
 
 router.get('/test', (req, res) => {
   res.json({ data: 'Hello world!' });
@@ -239,19 +249,32 @@ router.get(
           if (submissionData.is_self) {
             return submissionData;
           }
-          return submissionData.fetch().then((updatedData) => {
-            const modifiedSubmission = updatedData;
-            const mediaObject = getMedia(modifiedSubmission);
-            addMediaData(modifiedSubmission, mediaObject);
+          if (config.fetchAll) {
+            return submissionData.fetch().then((updatedData) => {
+              const modifiedSubmission = updatedData;
+              const mediaObject = getMedia(modifiedSubmission);
+              addMediaData(modifiedSubmission, mediaObject);
+              if (mediaObject === null) {
+                try {
+                  modifiedSubmission.image_urls = getSubmissionPreviewImageUrls(modifiedSubmission);
+                } catch (err) {
+                  console.error(`Error while fetching preview images for ${modifiedSubmission.title} (${modifiedSubmission.url}):`, err);
+                }
+              }
+              return modifiedSubmission;
+            });
+          } else {
+            const mediaObject = getMedia(submissionData);
+            addMediaData(submissionData, mediaObject);
             if (mediaObject === null) {
               try {
-                modifiedSubmission.image_urls = getSubmissionPreviewImageUrls(modifiedSubmission);
+                submissionData.image_urls = getSubmissionPreviewImageUrls(submissionData);
               } catch (err) {
-                console.error(`Error while fetching preview images for ${modifiedSubmission.title} (${modifiedSubmission.url}): ${err}`);
+                console.error(`Error while fetching preview images for ${submissionData.title} (${submissionData.url}):`, err);
               }
             }
-            return modifiedSubmission;
-          });
+            return submissionData;
+          }
         }),
       ).then((modifiedData) => res.send(modifiedData));
     });

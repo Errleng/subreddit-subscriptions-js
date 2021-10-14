@@ -6,13 +6,14 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class RedditService {
+  private readonly baseUrl = 'https://subreddit-subscription-backend.herokuapp.com'
   constructor(private http: HttpClient) { }
 
   public checkSubredditValid(name: string): Observable<any> {
-    return this.http.get(`/api/valid/subreddit/${name}`, { observe: 'response' });
+    return this.http.get(`${this.baseUrl}/api/valid/subreddit/${name}`, { observe: 'response' });
   }
 
   public getSubmissions(name: string, sortTime: string): Observable<object> {
-    return this.http.get(`/api/subreddit/${name}/top/${sortTime}/10`);
+    return this.http.get(`${this.baseUrl}/api/subreddit/${name}/top/${sortTime}/10`);
   }
 }
