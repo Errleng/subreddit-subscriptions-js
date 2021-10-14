@@ -20,6 +20,8 @@
     </li>
   </ol>
 </div>
-<div (keydown)='onKeyDown($event)' *ngFor="let name of subredditNames">
-  <ss-subreddit [name]="name"></ss-subreddit>
+<div class="subreddit-list">
+  <div (keydown)='onKeyDown($event)' *ngFor="let name of subredditNames">
+    <ss-subreddit [name]="name"></ss-subreddit>
+  </div>
 </div>

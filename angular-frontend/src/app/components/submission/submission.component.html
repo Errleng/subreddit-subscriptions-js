@@ -1,4 +1,4 @@
-<div #cardDiv tabindex="1" class="card text-center mt-2 mb-2" style="width: 50rem">
+<div #cardDiv tabindex="1" class="card text-center mt-2 mb-2">
   <h3 class="card-header">
     <a [href]="shortlink" rel="noopener noreferrer" target="_blank" class="text-decoration-none">
       {{data.title}} ({{data.score}})
@@ -9,8 +9,8 @@
       <img *ngFor="let imgUrl of data.image_urls" [src]="imgUrl" class="card-img-bottom" alt="submission preview">
     </div>
     <div *ngIf="data.video" class="card-body">
-      <video #videoElem (playing)="onMediaPlaying()" (pause)="onMediaPause()"
-        (seeked)="onMediaSeekCompletion($event)" controls>
+      <video #videoElem (playing)="onMediaPlaying()" (pause)="onMediaPause()" (seeked)="onMediaSeekCompletion($event)"
+        controls>
         <source [src]="data.video">
       </video>
       <audio #audioElem *ngIf="data.video_audio">
