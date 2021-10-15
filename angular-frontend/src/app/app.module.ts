@@ -1,3 +1,4 @@
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -34,6 +35,7 @@ import { RateLimiterService } from './services/rate-limiter/rate-limiter.service
     MatButtonModule,
     MatDialogModule,
     MatInputModule,
+    DragDropModule
   ],
   providers: [{ provide: HTTP_INTERCEPTORS, useClass: RateLimiterService, multi: true }],
   bootstrap: [AppComponent],

@@ -1,4 +1,5 @@
 import { FocusKeyManager } from '@angular/cdk/a11y';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit, Component, OnInit, QueryList, ViewChildren
 } from '@angular/core';
@@ -74,6 +75,10 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   removeSub(subIndex: number): void {
     this.subredditNames.splice(subIndex, 1);
     this.settingsService.updateSubredditList(this.subredditNames);
+  }
+
+  dropSub(event: CdkDragDrop<string[]>): void {
+    moveItemInArray(this.subredditNames, event.previousIndex, event.currentIndex)
   }
 
   clearAllSubs(): void {
