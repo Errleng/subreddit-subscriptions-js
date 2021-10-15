@@ -14,7 +14,7 @@ export class RateLimiterService implements HttpInterceptor {
   private queue: ReplaySubject<any>[] = [];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (req.url.match(/\/api\/subreddit\/.*/)) {
+    if (req.url.match(/.*\/api\/subreddit\/.*/)) {
       const requestQueueItem$ = new ReplaySubject<any>();
       const result$ = requestQueueItem$.pipe(
         switchMap(() => next.handle(req).pipe(

@@ -1,5 +1,6 @@
 import { FocusKeyManager } from '@angular/cdk/a11y';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit, Component, OnInit, QueryList, ViewChildren
 } from '@angular/core';
@@ -27,12 +28,14 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
 
   sub!: Subscription;
 
+  noResultsFound = false;
+
   constructor(private redditService: RedditService, private settingsService: SettingsService) { }
 
   ngOnInit(): void {
     const savedSubNames = this.settingsService.getSubredditList();
     if (savedSubNames === null) {
-      this.subredditNames = ['personalfinance', 'food']; // placeholder
+      this.subredditNames = ['aww', 'videos', 'books', 'food']; // defaults
     } else {
       this.subredditNames = savedSubNames;
     }
@@ -60,16 +63,24 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   }
 
   addSub(subName: string) {
-    this.redditService.checkSubredditValid(subName).subscribe(
-      (resp: Response) => {
+    this.redditService.checkSubredditValid(subName).subscribe({
+      next: (resp: Response) => {
         if (resp.ok) {
+          this.noResultsFound = false;
           this.subredditNames.push(subName);
           this.settingsService.updateSubredditList(this.subredditNames);
         } else {
-          alert(`Could not find r/${subName}`);
+          console.error('Subreddit search response was not OK:', resp)
         }
       },
-    );
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 404) {
+          this.noResultsFound = true;
+        } else {
+          console.error('Subreddit search error:', err)
+        }
+      }
+    });
   }
 
   removeSub(subIndex: number): void {
