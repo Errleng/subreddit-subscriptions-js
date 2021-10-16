@@ -1,17 +1,9 @@
 const express = require('express');
-const fs = require('fs');
 
 const router = express.Router();
 const reddit = require('./reddit');
-
-let config = null;
-try {
-  config = fs.readFileSync('./config.json');
-} catch (err) {
-  if (err.code !== 'ENOENT') {
-    console.error('Error when reading config file', err);
-  }
-}
+const config = require('./config');
+const db = require('./mongo');
 
 router.get('/test', (req, res) => {
   res.json({ data: 'Hello world!' });
@@ -53,7 +45,6 @@ function getSubmissionPreviewImageUrls(submission) {
           Math.min(previewImages.length - 1, MAX_PREVIEW_RESOLUTION_INDEX)
         ].url;
       } else {
-        console.log(submission.url);
         previewImage = images[0].source.url;
       }
       imageUrls.push(previewImage);
@@ -211,6 +202,81 @@ function addMediaData(submission, mediaObject) {
   }
 }
 
+function updateSubmissionMedia(submission) {
+  if (config.fetchAll) {
+    return submission.fetch().then((updatedData) => {
+      const modifiedSubmission = updatedData;
+      const mediaObject = getMedia(modifiedSubmission);
+      addMediaData(modifiedSubmission, mediaObject);
+      if (mediaObject === null) {
+        try {
+          modifiedSubmission.imageUrls = getSubmissionPreviewImageUrls(modifiedSubmission);
+        } catch (err) {
+          console.error(`Error while fetching preview images for ${modifiedSubmission.title} (${modifiedSubmission.url}):`, err);
+        }
+      }
+      return modifiedSubmission;
+    });
+  }
+  return new Promise((resolve, reject) => {
+    const mediaObject = getMedia(submission);
+    addMediaData(submission, mediaObject);
+    if (mediaObject === null) {
+      try {
+        submission.imageUrls = getSubmissionPreviewImageUrls(submission);
+      } catch (err) {
+        console.error(`Error while fetching preview images for ${submission.title} (${submission.url}):`, err);
+      }
+    }
+    resolve(submission);
+  });
+}
+
+function updateSubmissionInDb(submission) {
+  const dbConnect = db.getDb();
+  const submissionObj = {
+    lastUpdateTime: submission.lastUpdateTime,
+    imageUrls: submission.imageUrls,
+    id: submission.id,
+    title: submission.title,
+    score: submission.score,
+    upvote_ratio: submission.upvote_ratio,
+  };
+  const filter = { id: submissionObj.id };
+  const updateDocument = { $set: submissionObj };
+  const options = { upsert: true }; // create new document if does not exist
+  dbConnect
+    .collection(config.submissionsCollection)
+    .updateOne(filter, updateDocument, options)
+    .then((result) => {
+      // console.log(`Updated submission ${submissionObj.id}:`, result);
+    })
+    .catch((err) => console.log('Error inserting submission into database:', err));
+}
+
+function updateOldSubmissionInDb(snoowrapSubmission, dbSubmission) {
+  const newUpdateTime = new Date();
+  if (hasProp(dbSubmission, 'lastUpdateTime')) {
+    const oldUpdateTime = new Date(dbSubmission.lastUpdateTime);
+    const msSinceUpdate = newUpdateTime - oldUpdateTime;
+    const minsSinceUpdate = (msSinceUpdate / 1000) / 60;
+    if (minsSinceUpdate > config.minutesUntilUpdate) {
+      console.log(`Updating ${minsSinceUpdate} minutes old submission ${snoowrapSubmission.id}`);
+      return updateSubmissionMedia(snoowrapSubmission).then((mediaSubmission) => {
+        mediaSubmission.lastUpdateTime = newUpdateTime;
+        updateSubmissionInDb(mediaSubmission);
+        return mediaSubmission;
+      });
+    }
+  } else {
+    dbSubmission.lastUpdateTime = newUpdateTime;
+    updateSubmissionInDb(dbSubmission);
+  }
+  return new Promise((resolve, reject) => {
+    resolve(dbSubmission);
+  });
+}
+
 router.get(
   '/subreddit/:subredditName/:sortType/:sortTime/:numSubmissions',
   (req, res) => {
@@ -243,40 +309,42 @@ router.get(
       throw new Error(`Invalid sort time: ${sortTime}`);
     }
 
+    const dbConnect = db.getDb();
+    const submissionsCollection = dbConnect.collection(config.submissionsCollection);
     sortFunction({ time: sortTime, limit: numSubmissions }).then((data) => {
       Promise.all(
-        data.map((submissionData) => {
-          if (submissionData.is_self) {
-            return submissionData;
+        data.map((submission) => {
+          if (submission.is_self) {
+            return submission;
           }
-          if (config.fetchAll) {
-            return submissionData.fetch().then((updatedData) => {
-              const modifiedSubmission = updatedData;
-              const mediaObject = getMedia(modifiedSubmission);
-              addMediaData(modifiedSubmission, mediaObject);
-              if (mediaObject === null) {
-                try {
-                  modifiedSubmission.image_urls = getSubmissionPreviewImageUrls(modifiedSubmission);
-                } catch (err) {
-                  console.error(`Error while fetching preview images for ${modifiedSubmission.title} (${modifiedSubmission.url}):`, err);
-                }
+          const query = { id: submission.id };
+          const cursor = submissionsCollection
+            .find(query);
+          return cursor.count()
+            .then((count) => {
+              // console.log(`Found ${count} existing submissions for ${submission.id}`);
+              if (count === 0) {
+                const submissionPromise = updateSubmissionMedia(submission);
+                return submissionPromise.then((mediaSubmission) => {
+                  mediaSubmission.lastUpdateTime = new Date();
+                  updateSubmissionInDb(mediaSubmission);
+                  return mediaSubmission;
+                });
+              } if (count === 1) {
+                return cursor.next().then((dbSubmission) => updateOldSubmissionInDb(submission, dbSubmission));
               }
-              return modifiedSubmission;
+              cursor.toArray().then((submissions) => {
+                console.log('Duplicate submissions:', submissions);
+              });
+              throw new Error(`Found ${count} submissions with same id ${submission.id}`);
+            })
+            .catch((err) => {
+              console.log(`Error finding submission ${submission.id}:`, err);
             });
-          } else {
-            const mediaObject = getMedia(submissionData);
-            addMediaData(submissionData, mediaObject);
-            if (mediaObject === null) {
-              try {
-                submissionData.image_urls = getSubmissionPreviewImageUrls(submissionData);
-              } catch (err) {
-                console.error(`Error while fetching preview images for ${submissionData.title} (${submissionData.url}):`, err);
-              }
-            }
-            return submissionData;
-          }
         }),
-      ).then((modifiedData) => res.send(modifiedData));
+      ).then((modifiedData) => {
+        res.send(modifiedData);
+      });
     });
   },
 );

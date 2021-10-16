@@ -6,7 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class RedditService {
-  private readonly baseUrl = 'https://subreddit-subscription-backend.herokuapp.com'
+  // private readonly baseUrl = 'https://subreddit-subscription-backend.herokuapp.com';
+  private readonly baseUrl = '';
   constructor(private http: HttpClient) { }
 
   public checkSubredditValid(name: string): Observable<any> {

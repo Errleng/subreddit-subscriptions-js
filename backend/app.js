@@ -3,6 +3,16 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const db = require('./mongo');
+const config = require('./config');
+
+db.connectToMongo(() => {
+  console.log('Connected to MongoDB');
+  db.getDb().collection(config.submissionsCollection).createIndex(
+    { lastUpdateTime: 1 },
+    { expireAfterSeconds: config.minutesUntilDelete * 60 },
+  );
+});
 
 const app = express();
 

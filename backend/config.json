@@ -1,3 +1,6 @@
 {
-    "fetchAll": false
+    "fetchAll": true,
+    "minutesUntilUpdate": 1440,
+    "minutesUntilDelete": 10080,
+    "submissionsCollection": "submissions"
 }

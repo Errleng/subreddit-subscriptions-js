@@ -2,17 +2,17 @@ import React from 'react';
 import ImageComponent from './ImageComponent';
 
 function Submission(props) {
-  const { id, title, score, upvote_ratio, image_urls } = props.data;
+  const { id, title, score, upvote_ratio, imageUrls } = props.data;
 
   const shortlink = `https://redd.it/${id}`;
   const info = [score, `${upvote_ratio * 100}%`].filter(Boolean).join(', ');
 
   const imageElements =
-    image_urls === undefined
+    imageUrls === undefined
       ? null
-      : image_urls.map((preview) => {
-          return <ImageComponent key={preview} image_link={preview} />;
-        });
+      : imageUrls.map((preview) => {
+        return <ImageComponent key={preview} image_link={preview} />;
+      });
 
   return (
     <div id={`post-${id}`}>
