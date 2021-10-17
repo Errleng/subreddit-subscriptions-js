@@ -70,14 +70,14 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
           this.subredditNames.push(subName);
           this.settingsService.updateSubredditList(this.subredditNames);
         } else {
-          console.error('Subreddit search response was not OK:', resp)
+          console.error('Subreddit search response was not OK:', resp);
         }
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 404) {
           this.noResultsFound = true;
         } else {
-          console.error('Subreddit search error:', err)
+          console.error('Subreddit search error:', err);
         }
       }
     });
@@ -89,7 +89,8 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
   }
 
   dropSub(event: CdkDragDrop<string[]>): void {
-    moveItemInArray(this.subredditNames, event.previousIndex, event.currentIndex)
+    moveItemInArray(this.subredditNames, event.previousIndex, event.currentIndex);
+    this.settingsService.updateSubredditList(this.subredditNames);
   }
 
   clearAllSubs(): void {
@@ -108,7 +109,7 @@ export class SubredditListComponent implements OnInit, AfterViewInit {
     this.settingsService.importSubredditList(file).then((names) => {
       this.subredditNames = names;
       this.settingsService.updateSubredditList(this.subredditNames);
-    })
+    });
   }
 
   exportSubredditList(): void {
