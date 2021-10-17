@@ -17,7 +17,7 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
 
   private keyEventManager!: FocusKeyManager<SubmissionComponent>;
 
-  private sub!: Subscription
+  private sub!: Subscription;
 
   @Input() name: string = '';
 
@@ -79,7 +79,15 @@ export class SubredditComponent implements OnInit, AfterViewInit, OnDestroy, Foc
 
   loadData(): void {
     this.sub = this.redditService.getSubmissions(this.name, this.sortTime).subscribe({
-      next: (data: object) => { this.submissionDatas = Object.values(data); },
+      next: (data: object) => {
+        this.submissionDatas = Object.values(data);
+        const sortedDatas = [...this.submissionDatas].sort((a, b) => a.score - b.score).reverse();
+
+        if (this.submissionDatas !== sortedDatas) {
+          // console.log(`Scores for ${this.name} are not in descending order:`, this.submissionDatas.map((data) => data.score));
+          this.submissionDatas = sortedDatas;
+        }
+      },
       error: (err: string) => console.error(`Error getting data for r/${this.name} submission:`, err),
     });
   }
