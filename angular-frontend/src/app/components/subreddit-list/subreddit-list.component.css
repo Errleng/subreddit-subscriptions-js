@@ -10,3 +10,7 @@
 .search-error {
   color: red;
 }
+
+.form-group .btn {
+  margin-right: 10px;
+}

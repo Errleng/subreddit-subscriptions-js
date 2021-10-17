@@ -11,9 +11,9 @@
 <div class="form-group">
   <label for="subredditListFile" class="btn btn-primary">Import</label>
   <input (change)="importSubredditList($event)" id="subredditListFile" type="file" class="form-control file-input">
-  <button (click)="exportSubredditList()" class="btn btn-primary ms-2">Export</button>
+  <button (click)="exportSubredditList()" class="btn btn-primary">Export</button>
+  <button (click)="clearAllSubs()" class="btn btn-primary">Clear all</button>
 </div>
-<button (click)="clearAllSubs()" class="btn btn-primary mt-2">Clear all</button>
 <div class="mt-3 mb-3 list-group">
   <ol cdkDropList (cdkDropListDropped)="dropSub($event)">
     <li *ngFor="let name of subredditNames; let i = index" cdkDrag>

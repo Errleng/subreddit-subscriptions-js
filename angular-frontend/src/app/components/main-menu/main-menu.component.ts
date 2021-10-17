@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
 import { SettingsDialogComponent } from '../settings-dialog/settings-dialog.component';
 
 @Component({
@@ -14,7 +15,11 @@ export class MainMenuComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  openAboutDialog(): void {
+    this.dialog.open(AboutDialogComponent);
+  }
+
   openSettingsDialog(): void {
-    const dialogRef = this.dialog.open(SettingsDialogComponent);
+    this.dialog.open(SettingsDialogComponent);
   }
 }

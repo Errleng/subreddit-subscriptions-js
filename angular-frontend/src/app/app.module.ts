@@ -9,6 +9,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { AppComponent } from './app.component';
+import { AboutDialogComponent } from './components/about-dialog/about-dialog.component';
 import { MainMenuComponent } from './components/main-menu/main-menu.component';
 import { SettingsDialogComponent } from './components/settings-dialog/settings-dialog.component';
 import { SubmissionComponent } from './components/submission/submission.component';
@@ -24,6 +25,7 @@ import { RateLimiterService } from './services/rate-limiter/rate-limiter.service
     SubredditListComponent,
     MainMenuComponent,
     SettingsDialogComponent,
+    AboutDialogComponent,
   ],
   imports: [
     BrowserModule,
