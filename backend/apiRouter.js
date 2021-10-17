@@ -185,16 +185,16 @@ function addMediaData(submission, mediaObject) {
   if (mediaObject !== null) {
     switch (mediaObject.type) {
       case 'embed':
-        submission.html = mediaObject.media;
+        submission.mediaHtml = mediaObject.media;
         break;
       case 'html':
-        submission.html = mediaObject.media;
+        submission.mediaHtml = mediaObject.media;
         break;
       case 'thumbnail':
-        submission.html = mediaObject.media;
+        submission.mediaHtml = mediaObject.media;
         break;
       case 'video':
-        submission.video = mediaObject.media;
+        submission.mediaVideo = mediaObject.media;
         break;
       default:
         throw new Error(`Invalid media type: ${mediaObject}`);
@@ -237,6 +237,8 @@ function updateSubmissionInDb(submission) {
   const submissionObj = {
     lastUpdateTime: submission.lastUpdateTime,
     imageUrls: submission.imageUrls,
+    mediaVideo: submission.mediaVideo,
+    mediaHtml: submission.mediaHtml,
     id: submission.id,
     title: submission.title,
     score: submission.score,

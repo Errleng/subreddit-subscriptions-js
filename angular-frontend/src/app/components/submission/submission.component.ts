@@ -27,12 +27,12 @@ export class SubmissionComponent implements OnInit, FocusableOption {
 
   ngOnInit(): void {
     this.shortlink = `https://redd.it/${this.data.id}`;
-    const { video } = this.data;
-    if (video && video.includes('v.redd.it')) {
-      this.data.video_audio = `${video.substring(0, video.lastIndexOf('/'))}/DASH_audio.mp4`;
+    const { mediaVideo } = this.data;
+    if (mediaVideo && mediaVideo.includes('v.redd.it')) {
+      this.data.videoAudio = `${mediaVideo.substring(0, mediaVideo.lastIndexOf('/'))}/DASH_audio.mp4`;
     }
-    if (this.data.html) {
-      this.data.html = this.sanitizer.bypassSecurityTrustHtml(this.data.html);
+    if (this.data.mediaHtml) {
+      this.data.mediaHtml = this.sanitizer.bypassSecurityTrustHtml(this.data.mediaHtml);
     }
   }
 
@@ -40,11 +40,11 @@ export class SubmissionComponent implements OnInit, FocusableOption {
     this.card.nativeElement.focus({ preventScroll: true });
     this.card.nativeElement.scrollIntoView(true, { behavior: 'smooth' });
   }
-  
+
   onMediaPlaying() {
     if (this.audioElem) {
       this.audioElem.nativeElement.play();
-      this.audioElem.nativeElement.currentTime = this.videoElem.nativeElement.currentTime
+      this.audioElem.nativeElement.currentTime = this.videoElem.nativeElement.currentTime;
     }
   }
 
