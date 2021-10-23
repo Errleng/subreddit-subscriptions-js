@@ -1,7 +1,7 @@
 # subreddit-subscriptions-js
 Subreddit Subscriptions using Node.js, Express, Angular, and MongoDB.
 
-[Check it out here](https://subreddit-subscriptions.herokuapp.com).
+### [Check it out here](https://subreddit-subscriptions.herokuapp.com).
 
 ## What does it do?
 Read the top posts of a list of subscribed subreddits, all in one place.
@@ -21,3 +21,6 @@ This app allows you to customize which subreddits you want to see, and in what o
 It loads the top posts from each subreddit in the list, including images and media.
 Clicking on a post's title or image opens a new tab showing that post on Reddit.
 There are also keyboard shortcuts for faster navigation.
+
+## Preview
+![Screenshot of Subreddit Subcriptions](subreddit-subscriptions-preview.png)
