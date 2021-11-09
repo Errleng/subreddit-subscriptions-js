@@ -272,12 +272,12 @@ function updateOldSubmissionInDb(snoowrapSubmission, dbSubmission) {
       });
     }
   } else {
-    dbSubmission.score = snoowrapSubmission.score;
-    dbSubmission.upvote_ratio = snoowrapSubmission.upvote_ratio;
-    dbSubmission.removed_by_category = snoowrapSubmission.removed_by_category;
     dbSubmission.lastUpdateTime = newUpdateTime;
-    updateSubmissionInDb(dbSubmission);
   }
+  dbSubmission.score = snoowrapSubmission.score;
+  dbSubmission.upvote_ratio = snoowrapSubmission.upvote_ratio;
+  dbSubmission.removed_by_category = snoowrapSubmission.removed_by_category;
+  updateSubmissionInDb(dbSubmission);
   return new Promise((resolve, reject) => {
     resolve(dbSubmission);
   });
@@ -328,7 +328,7 @@ router.get(
             .find(query);
           return cursor.count()
             .then((count) => {
-              // console.log(`Found ${count} existing submissions for ${submission.id}`);
+              // console.log(`Found ${count} existing submissions for ${submission.id}: ${submission.title}`);
               if (count === 0) {
                 const submissionPromise = updateSubmissionMedia(submission);
                 return submissionPromise.then((mediaSubmission) => {

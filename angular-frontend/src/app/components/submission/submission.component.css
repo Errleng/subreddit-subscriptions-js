@@ -2,6 +2,10 @@ a:visited {
   color: #8649b8;
 }
 
+a.deleted {
+  color: darkred;
+}
+
 div.card:focus {
   border: 1px solid black;
 }

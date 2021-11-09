@@ -34,6 +34,9 @@ export class SubmissionComponent implements OnInit, FocusableOption {
     if (this.data.mediaHtml) {
       this.data.mediaHtml = this.sanitizer.bypassSecurityTrustHtml(this.data.mediaHtml);
     }
+    if (this.data.removed_by_category !== null) {
+      this.data.title += `(removed by ${this.data.removed_by_category})`;
+    }
   }
 
   focus(origin?: FocusOrigin): void {
