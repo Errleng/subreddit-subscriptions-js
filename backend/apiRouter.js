@@ -243,6 +243,7 @@ function updateSubmissionInDb(submission) {
     title: submission.title,
     score: submission.score,
     upvote_ratio: submission.upvote_ratio,
+    removed_by_category: submission.removed_by_category
   };
   const filter = { id: submissionObj.id };
   const updateDocument = { $set: submissionObj };
@@ -271,6 +272,9 @@ function updateOldSubmissionInDb(snoowrapSubmission, dbSubmission) {
       });
     }
   } else {
+    dbSubmission.score = snoowrapSubmission.score;
+    dbSubmission.upvote_ratio = snoowrapSubmission.upvote_ratio;
+    dbSubmission.removed_by_category = snoowrapSubmission.removed_by_category;
     dbSubmission.lastUpdateTime = newUpdateTime;
     updateSubmissionInDb(dbSubmission);
   }
