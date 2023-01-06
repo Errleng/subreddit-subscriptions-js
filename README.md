@@ -1,7 +1,7 @@
 # subreddit-subscriptions-js
 Subreddit Subscriptions using Node.js, Express, Angular, and MongoDB.
 
-### [Check it out here](https://subreddit-subscriptions.herokuapp.com).
+### [Check it out here](https://subreddit-subscriptions.vercel.app).
 
 ## What does it do?
 Read the top posts of a list of subscribed subreddits, all in one place.
